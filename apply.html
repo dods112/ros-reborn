@@ -4,12 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apply Now | Ros Reborn Creator Program</title>
-  <meta name="description" content="Apply to the Ros Reborn V2 Creator Program.">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="apply-page">
@@ -25,7 +22,6 @@
       </span>
       <span class="logo-tag">U2</span>
     </a>
-
     <nav class="nav-links" aria-label="Main">
       <a href="index.html#faq">FAQ</a>
       <a href="index.html" class="btn-home">
@@ -44,8 +40,6 @@
         <h1 id="apply-title">APPLY NOW</h1>
 
         <div class="apply-card">
-
-          <!-- Fox character, inside the card on the left -->
           <aside class="apply-art" aria-hidden="true">
             <img src="assets/images/fox-character.png" alt="">
           </aside>
@@ -62,93 +56,89 @@
               </p>
             </div>
 
-            <form id="apply-form" action="/apply" method="POST" novalidate>
+            <form id="apply-form" action="/apply" method="POST">
               <input type="hidden" name="_token" value="REPLACE_WITH_CSRF_TOKEN">
 
-              <div class="form-columns">
-
-                <div class="form-col">
-                  <div class="field">
-                    <label for="ign">In-game name <span class="req">*</span></label>
-                    <input id="ign" name="ign" type="text" autocomplete="off" placeholder="Your in-game name" aria-describedby="ign-error">
-                    <p class="field-error" id="ign-error" role="alert"></p>
-                  </div>
-
-                  <div class="field">
-                    <label for="platform">Content platform <span class="req">*</span></label>
-                    <select id="platform" name="platform" aria-describedby="platform-error">
-                      <option value="">Select a platform</option>
-                      <option value="youtube">YouTube</option>
-                      <option value="tiktok">TikTok</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <p class="field-error" id="platform-error" role="alert"></p>
-                  </div>
-
-                  <div class="field" id="other-wrap" hidden>
-                    <label for="platform-other">Platform name <span class="req">*</span></label>
-                    <input id="platform-other" name="platform_other" type="text" placeholder="e.g. Twitch, Kick, Instagram" aria-describedby="platform-other-error">
-                    <p class="field-error" id="platform-other-error" role="alert"></p>
-                  </div>
-
-                  <div class="field">
-                    <label for="followers">Follower count <span class="req">*</span></label>
-                    <input id="followers" name="followers" type="number" min="10000" inputmode="numeric" placeholder="10000" aria-describedby="followers-hint followers-error">
-                    <p class="hint" id="followers-hint">Minimum 10,000 followers.</p>
-                    <p class="field-error" id="followers-error" role="alert"></p>
-                  </div>
-
-                  <div class="field">
-                    <label for="best-content">Best Ros Reborn content link <span class="opt">(optional)</span></label>
-                    <input id="best-content" name="best_content" type="url" placeholder="https://" aria-describedby="best-content-error">
-                    <p class="field-error" id="best-content-error" role="alert"></p>
-                  </div>
+              <div class="form-grid">
+                <!-- 01 -->
+                <div class="field">
+                  <label for="ign">01 / In-game name <span class="req">*</span></label>
+                  <input id="ign" name="ign" type="text" autocomplete="off" placeholder="Your in-game name" required>
                 </div>
 
-                <div class="form-col">
-                  <div class="field">
-                    <label for="discord">Discord username <span class="req">*</span></label>
-                    <input id="discord" name="discord" type="text" autocomplete="off" placeholder="username" aria-describedby="discord-error">
-                    <p class="field-error" id="discord-error" role="alert"></p>
-                  </div>
-
-                  <div class="field">
-                    <label for="channel">Channel URL <span class="req">*</span></label>
-                    <input id="channel" name="channel" type="url" placeholder="https://" aria-describedby="channel-hint channel-error">
-                    <p class="hint" id="channel-hint">Link to your channel or profile.</p>
-                    <p class="field-error" id="channel-error" role="alert"></p>
-                  </div>
-
-                  <div class="field">
-                    <label for="views">Average video views <span class="opt">(optional)</span></label>
-                    <input id="views" name="views" type="number" min="0" inputmode="numeric" placeholder="e.g. 2500" aria-describedby="views-error">
-                    <p class="field-error" id="views-error" role="alert"></p>
-                  </div>
+                <!-- 02 -->
+                <div class="field">
+                  <label for="discord">02 / Discord username <span class="req">*</span></label>
+                  <input id="discord" name="discord" type="text" autocomplete="off" placeholder="username" required>
                 </div>
 
-              </div>
+                <!-- 03 -->
+                <div class="field">
+                  <label for="platform">03 / Content platform <span class="req">*</span></label>
+                  <select id="platform" name="platform" required>
+                    <option value="">Select a platform</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
 
-              <!-- Additional Notes -->
-              <div class="field field-full" style="margin-top: 12px;">
-                <label for="additional-notes">Additional Notes <span class="opt">(optional)</span></label>
-                <textarea id="additional-notes" name="additional_notes" rows="3" placeholder="Anything else we should know about your channel?"></textarea>
-                <p class="field-error" id="additional-notes-error" role="alert"></p>
-              </div>
+                <div class="field" id="other-wrap" hidden>
+                  <label for="platform-other">Platform name <span class="req">*</span></label>
+                  <input id="platform-other" name="platform_other" type="text" placeholder="e.g. Twitch, Kick, Instagram">
+                </div>
 
-              <!-- NEW: File Upload Field -->
-              <div class="field field-full" style="margin-top: 12px;">
-                <label for="proof">Proof of ownership <span class="opt">(optional)</span></label>
-                <input type="file" id="proof" name="proof" accept="image/*,.pdf" aria-describedby="proof-hint proof-error">
-                <p class="hint" id="proof-hint">Upload a screenshot or PDF proving you own the channel (Max 4MB).</p>
-                <p class="field-error" id="proof-error" role="alert"></p>
+                <!-- 04 -->
+                <div class="field">
+                  <label for="channel">04 / Channel URL <span class="req">*</span></label>
+                  <input id="channel" name="channel" type="url" placeholder="https://" required>
+                  <p class="hint">Link to your channel or profile.</p>
+                </div>
+
+                <!-- 05 -->
+                <div class="field">
+                  <label for="email">05 / Gmail Address <span class="req">*</span></label>
+                  <input id="email" name="email" type="email" autocomplete="off" placeholder="your.email@gmail.com" required>
+                </div>
+
+                <!-- 06 -->
+                <div class="field">
+                  <label for="followers">06 / Follower count <span class="req">*</span></label>
+                  <input id="followers" name="followers" type="number" min="10000" inputmode="numeric" placeholder="10000" required>
+                  <p class="hint">Minimum 10,000 followers.</p>
+                </div>
+
+                <!-- 07 -->
+                <div class="field">
+                  <label for="views">07 / Average video views <span class="opt">(optional)</span></label>
+                  <input id="views" name="views" type="number" min="0" inputmode="numeric" placeholder="e.g. 2500">
+                </div>
+
+                <!-- 08 -->
+                <div class="field">
+                  <label for="best-content">08 / Best Ros Reborn content link <span class="opt">(optional)</span></label>
+                  <input id="best-content" name="best_content" type="url" placeholder="https://">
+                </div>
+
+                <!-- 09 -->
+                <div class="field field-full">
+                  <label for="additional-notes">09 / Additional Notes <span class="opt">(optional)</span></label>
+                  <textarea id="additional-notes" name="additional_notes" rows="3" placeholder="Anything else we should know about your channel?"></textarea>
+                </div>
+
+                <!-- 10 -->
+                <div class="field field-full">
+                  <label for="proof">10 / Proof of ownership <span class="opt">(optional)</span></label>
+                  <input type="file" id="proof" name="proof" accept="image/*,.pdf">
+                  <p class="hint">Upload a screenshot or PDF proving you own the channel (Max 3MB).</p>
+                </div>
               </div>
 
               <div class="agree-row">
-                <input type="checkbox" id="agree" name="agree" aria-describedby="agree-error">
+                <input type="checkbox" id="agree" name="agree" required>
                 <div>
                   <label for="agree">I agree to follow the Ros Reborn community guidelines and creator program requirements. <span class="req">*</span></label>
-                  <p class="field-error" id="agree-error" role="alert"></p>
                 </div>
               </div>
 
@@ -160,7 +150,6 @@
               <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
             </form>
           </div>
-
         </div>
       </div>
     </div>

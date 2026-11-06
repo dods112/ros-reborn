@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Application Status | Ros Reborn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="apply-page" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+  
+  <div class="apply-card" style="max-width: 500px; padding: 40px; text-align: center; grid-template-columns: 1fr;">
+    <h1 style="font-family: var(--font-head); color: var(--navy); margin-bottom: 10px;">Check Status</h1>
+    <p style="color: var(--navy-muted); margin-bottom: 30px;">Enter your Discord Username or Reference ID to see your application status.</p>
+    
+    <div class="field" style="text-align: left;">
+      <input type="text" id="search-query" placeholder="e.g. HollyM or RR-X7B2" style="width: 100%; padding: 15px; border-radius: 10px; border: 1.5px solid var(--ap-border); margin-bottom: 20px;">
+    </div>
+    
+    <button id="check-btn" class="apply-submit" style="width: 100%;">Check Status</button>
+    
+    <div id="result-box" style="margin-top: 30px; display: none; padding: 20px; border-radius: 10px;">
+      <h3 id="result-title" style="margin-top: 0;"></h3>
+      <p id="result-text" style="margin-bottom: 0; font-size: 16px;"></p>
+    </div>
+    
+    <a href="index.html" style="display: block; margin-top: 30px; color: var(--navy-muted); text-decoration: underline;">Back to Home</a>
+  </div>
+
+  <script>
+    // PUT YOUR GOOGLE APPS SCRIPT URL HERE
+    const GOOGLE_SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+
+    document.getElementById('check-btn').addEventListener('click', async () => {
+      const query = document.getElementById('search-query').value.trim();
+      const resultBox = document.getElementById('result-box');
+      const resultTitle = document.getElementById('result-title');
+      const resultText = document.getElementById('result-text');
+      
+      if (!query) return alert("Please enter a username or Ref ID.");
+
+      document.getElementById('check-btn').textContent = "Checking...";
+
+      try {
+        const response = await fetch(`${GOOGLE_SHEET_URL}?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        resultBox.style.display = "block";
+
+        if (data.status === "success") {
+          resultTitle.textContent = `Application Found: ${data.ign}`;
+          if (data.result === "Approved") {
+            resultBox.style.background = "#edfbf4";
+            resultBox.style.border = "1px solid #b4e9cf";
+            resultBox.style.color = "#0d6b47";
+            resultText.textContent = "Congratulations! Your application has been Approved. Please check your Discord DMs for next steps.";
+          } else if (data.result === "Declined") {
+            resultBox.style.background = "#fff0f3";
+            resultBox.style.border = "1px solid #f4b8c8";
+            resultBox.style.color = "#8f1538";
+            resultText.textContent = "Unfortunately, your application was Declined. You can try again in the future.";
+          } else {
+            resultBox.style.background = "#f1f2fb";
+            resultBox.style.border = "1px solid #d6d8ef";
+            resultBox.style.color = "var(--navy)";
+            resultText.textContent = "Your application is currently Pending Review. Please check back later.";
+          }
+        } else {
+          resultBox.style.background = "#fff0f3";
+          resultBox.style.border = "1px solid #f4b8c8";
+          resultBox.style.color = "#8f1538";
+          resultTitle.textContent = "Not Found";
+          resultText.textContent = "We could not find an application with that Discord Username or Ref ID.";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error checking status. Try again later.");
+      } finally {
+        document.getElementById('check-btn').textContent = "Check Status";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Ros Reborn</title>
+  <link rel="stylesheet" href="style.css"> 
+  <style>
+    body { background: url('assets/images/bg-map-dots.png') center top / cover no-repeat fixed; background-color: #d8f5f7; margin: 0; padding: 0; min-height: 100vh; font-family: var(--font-body); }
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgba(255, 255, 255, 0.4); }
+
+    /* Login */
+    #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: #fff; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; border: 2px solid transparent; background: linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(135deg, #00d9e9, #f45cae, #7b2cbf) border-box; box-shadow: 0 20px 50px rgba(33, 27, 120, 0.15); text-align: center; }
+    .login-card h2 { font-family: var(--font-head); color: var(--navy); font-size: 32px; margin-top: 0; margin-bottom: 8px; }
+    .login-card p { color: var(--navy-muted); font-size: 14px; margin-bottom: 24px; }
+    .login-card input { width: 100%; height: 50px; padding: 0 16px; font-size: 16px; font-family: var(--font-body); border: 1.5px solid #dcdcec; border-radius: 10px; margin-bottom: 16px; outline: none; transition: 0.2s; box-sizing: border-box; }
+    .login-card input:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 4px rgba(244, 92, 174, 0.15); }
+    .login-card button { width: 100%; height: 50px; border-radius: 10px; border: none; color: #fff; font-family: var(--font-head); font-size: 18px; font-weight: 800; letter-spacing: 1px; cursor: pointer; background: linear-gradient(90deg, #211b78 0%, #7b2cbf 50%, #f45cae 100%); background-size: 200% auto; transition: 0.3s; box-shadow: 0 4px 15px rgba(244, 92, 174, 0.3); }
+    .login-card button:hover { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(244, 92, 174, 0.5); }
+    #login-error { color: #c81e4f; font-weight: bold; margin-top: 15px; margin-bottom: 0; }
+
+    /* Dashboard */
+    #dashboard { display: none; padding-bottom: 60px; }
+    .admin-nav { background: rgba(250, 246, 252, .85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(33, 27, 120, .13); box-shadow: 0 5px 22px rgba(33, 27, 120, .05); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; margin-bottom: 40px; }
+    .admin-nav h1 { font-family: var(--font-head); color: var(--navy); margin: 0; font-size: 24px; text-transform: uppercase; }
+    .refresh-btn { background: var(--navy); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-family: var(--font-head); font-size: 16px; font-weight: bold; transition: 0.2s; }
+    .refresh-btn:hover { background: var(--accent-pink); }
+    
+    .admin-grid-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+    .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; }
+    
+    /* Card Base */
+    .app-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid var(--accent-pink); position: relative; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; }
+    .app-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    .app-card.approved { border-top-color: #0d6b47; opacity: 0.85; }
+    .app-card.declined { border-top-color: #8f1538; opacity: 0.85; }
+    
+    /* Header */
+    .app-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 10px; }
+    .app-header h3 { margin: 0; color: var(--navy); font-family: var(--font-head); font-size: 24px; text-transform: uppercase; line-height: 1.1; word-break: break-word; }
+    .app-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+    .app-ref { font-family: monospace; background: #f0f2f8; color: var(--navy); padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+    .app-time { font-size: 12px; color: #888; font-weight: 600; }
+    
+    /* Stats */
+    .app-stats { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-badge { flex: 1; text-align: center; background: #f8f9fc; border: 1px solid #e0e2f0; padding: 10px; border-radius: 10px; font-size: 13px; color: var(--navy-muted); display: flex; flex-direction: column; gap: 4px; }
+    .stat-badge strong { color: var(--navy); font-size: 18px; font-family: var(--font-head); letter-spacing: 0.5px; }
+    
+    /* Details List */
+    .app-details { font-size: 14px; color: #444; margin-bottom: 20px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0f0f0; gap: 15px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #888; font-weight: 600; flex-shrink: 0; margin-top: 4px; }
+    .detail-value { font-weight: 700; color: var(--navy); text-align: right; word-break: break-word; overflow-wrap: anywhere; min-width: 0; max-width: 65%; }
+    .detail-value code { background: #eef1f8; padding: 4px 8px; border-radius: 6px; color: var(--navy); word-break: break-word; }
+
+    /* Platform Badges */
+    .badge-platform { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-align: right; max-width: 100%; box-sizing: border-box; }
+    .badge-youtube { background: #ff0000; color: white; }
+    .badge-tiktok { background: #000000; color: white; }
+    .badge-facebook { background: #1877f2; color: white; }
+    .badge-other { background: #6c757d; color: white; }
+    
+    /* File Attachment */
+    .file-tag { display: inline-block; background: #eef1f8; padding: 6px 12px; border-radius: 6px; color: var(--navy); font-weight: 700; font-size: 13px; border: 1px dashed #b8bbd8; text-decoration: none; transition: 0.2s; cursor: pointer; }
+    .file-tag:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .file-tag.missing { opacity: 0.5; cursor: not-allowed; }
+    .file-tag.missing:hover { background: #eef1f8; color: var(--navy); border-color: #b8bbd8; }
+    
+    /* Links as Buttons */
+    .app-links { display: flex; gap: 12px; margin-bottom: 20px; }
+    .app-links a { flex: 1; text-align: center; background: #fff; color: var(--navy); text-decoration: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 700; transition: 0.2s; border: 2px solid rgba(33, 27, 120, 0.1); }
+    .app-links a:hover { background: var(--navy); color: white; border-color: var(--navy); }
+    
+    /* Notes */
+    .app-notes { background: #f8f9fc; border-left: 4px solid var(--accent-pink); padding: 14px 16px; border-radius: 0 8px 8px 0; font-size: 14px; color: #555; font-style: italic; margin-bottom: 24px; flex-grow: 1; word-break: break-word; }
+    
+    /* Action Buttons */
+    .btn-group { display: flex; gap: 12px; margin-top: auto; }
+    .btn-approve, .btn-decline { flex: 1; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: 800; font-family: var(--font-head); font-size: 18px; letter-spacing: 1px; transition: 0.2s; text-transform: uppercase; }
+    .btn-approve { background: #0d6b47; color: #fff; }
+    .btn-approve:hover { background: #0a5538; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13, 107, 71, 0.3); }
+    .btn-decline { background: #c81e4f; color: #fff; }
+    .btn-decline:hover { background: #a0173e; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200, 30, 79, 0.3); }
+    
+    /* Status Badge */
+    .status-badge { position: absolute; top: -14px; right: 24px; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; padding: 6px 14px; border-radius: 20px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .status-badge.approved { background: #0d6b47; }
+    .status-badge.declined { background: #8f1538; }
+  </style>
+</head>
+<body>
+
+  <div id="login-screen">
+    <div class="login-card">
+      <h2>Admin Access</h2>
+      <p>Enter your credentials to manage applications.</p>
+      <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+      <button onclick="login()">Access Dashboard</button>
+      <p id="login-error"></p>
+    </div>
+  </div>
+
+  <div id="dashboard">
+    <div class="admin-nav">
+      <h1>Creator Applications</h1>
+      <button onclick="loadApplications()" class="refresh-btn">Refresh Data</button>
+    </div>
+    
+    <div class="admin-grid-container">
+      <div class="app-grid" id="app-grid"></div>
+    </div>
+    
+    <div id="debug-box" style="max-width: 1400px; margin: 20px auto; padding: 15px; background: #333; color: #fff; font-family: monospace; font-size: 12px; border-radius: 8px; display: none; overflow-x: auto;"></div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "rosreborn2026"; 
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKmzVB0mmJmnCwdSClouj-_ZXYmKNzwTUbX5arpSAH0KMfETjuIXqYMC8h6SorzpQ/exec"; 
+
+    function login() {
+      const pass = document.getElementById('admin-pass').value;
+      if (pass === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadApplications();
+      } else {
+        document.getElementById('login-error').textContent = "Incorrect password.";
+      }
+    }
+
+    async function loadApplications() {
+      const grid = document.getElementById('app-grid');
+      const debugBox = document.getElementById('debug-box');
+      grid.innerHTML = "<p style='color: var(--navy); font-weight: bold;'>Loading applications...</p>";
+      debugBox.style.display = 'none';
+
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll`);
+        const rawText = await response.text(); 
+        let result;
+        
+        try {
+          result = JSON.parse(rawText);
+        } catch (e) {
+          debugBox.style.display = 'block';
+          debugBox.innerHTML = `<strong>Google returned an HTML error instead of JSON.</strong><br><br>${rawText}`;
+          grid.innerHTML = "";
+          return;
+        }
+
+        if (result.status === "success") {
+          if (result.data.length === 0) {
+            grid.innerHTML = "<p style='color: var(--navy-muted);'>No applications found. Check if your Google Sheet tab is named 'Applications'.</p>";
+            return;
+          }
+
+          grid.innerHTML = ""; 
+          
+          result.data.forEach(app => {
+            let statusClass = app.status.toLowerCase() === 'approved' ? 'approved' : (app.status.toLowerCase() === 'declined' ? 'declined' : '');
+            let buttonsHTML = '';
+            
+            if (app.status === 'Pending') {
+              buttonsHTML = `
+                <div class="btn-group" id="btns-${app.refId}">
+                  <button class="btn-approve" onclick="updateStatus('${app.refId}', 'Approved', this)">Approve</button>
+                  <button class="btn-decline" onclick="updateStatus('${app.refId}', 'Declined', this)">Decline</button>
+                </div>
+              `;
+            }
+
+            // --- SANITIZE DATA FOR DISPLAY ---
+            let safeEmail = app.email || 'N/A';
+            if (!safeEmail.includes('@')) safeEmail = 'Invalid Email';
+
+            let platformText = String(app.platform || 'N/A');
+            let platformClass = 'badge-other';
+            let platformName = platformText.toLowerCase();
+            
+            if(platformName.includes('youtube')) platformClass = 'badge-youtube';
+            else if(platformName.includes('tiktok')) platformClass = 'badge-tiktok';
+            else if(platformName.includes('facebook')) platformClass = 'badge-facebook';
+            
+            if (platformText.length > 20 || platformText.startsWith('http')) {
+              platformText = "Link Provided"; 
+              platformClass = 'badge-other';
+            }
+
+            // Hide weird notes that look like file names
+            let safeNotes = app.notes || 'No notes provided.';
+            if (safeNotes.includes('.png') || safeNotes.includes('.jpg') || safeNotes === 'None') {
+              safeNotes = 'No additional notes.';
+            }
+
+            const safeFollowers = (app.followers && !isNaN(app.followers) && Number(app.followers) > 0) ? Number(app.followers).toLocaleString() : 'N/A';
+            const safeViews = (app.views && !isNaN(app.views) && Number(app.views) > 0) ? Number(app.views).toLocaleString() : 'N/A';
+
+            grid.innerHTML += `
+              <div class="app-card ${statusClass}" id="card-${app.refId}">
+                ${statusClass ? `<span class="status-badge ${statusClass}">${app.status}</span>` : ''}
+                
+                <div class="app-header">
+                  <h3>${app.ign}</h3>
+                  <div class="app-meta">
+                    <span class="app-ref">${app.refId}</span>
+                    <span class="app-time">${new Date(app.timestamp).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                
+                <div class="app-stats">
+                  <div class="stat-badge">Followers <strong>${safeFollowers}</strong></div>
+                  <div class="stat-badge">Avg Views <strong>${safeViews}</strong></div>
+                </div>
+                
+                <div class="app-details">
+                  <div class="detail-row">
+                    <span class="detail-label">Discord</span>
+                    <span class="detail-value"><code>${app.discord || 'N/A'}</code></span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value"><code>${safeEmail}</code></span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Platform</span>
+                    <span class="detail-value"><span class="badge-platform ${platformClass}">${platformText}</span></span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Proof File</span>
+                    <span class="detail-value">
+                      ${app.proofUrl && app.proofUrl !== ""
+                        ? `<a href="${app.proofUrl}" target="_blank" class="file-tag">View Attached File</a>` 
+                        : `<span class="file-tag missing">No file attached</span>`
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="app-links">
+                  <a href="${app.channel}" target="_blank">View Channel</a>
+                  ${app.content && app.content !== 'Not given' && app.content !== 'None' ? `<a href="${app.content}" target="_blank">View Content</a>` : ''}
+                </div>
+                
+                <div class="app-notes">
+                  "${safeNotes}"
+                </div>
+                
+                ${buttonsHTML}
+              </div>
+            `;
+          });
+        } else {
+          grid.innerHTML = "<p>Error fetching applications.</p>";
+        }
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = "<p style='color: red;'>Network Error.</p>";
+      }
+    }
+
+    async function updateStatus(refId, newStatus, btnElement) {
+      const card = document.getElementById(`card-${refId}`);
+      const btnGroup = document.getElementById(`btns-${refId}`);
+      
+      btnElement.textContent = "Updating...";
+      btnGroup.querySelectorAll('button').forEach(b => b.disabled = true);
+
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=update&refId=${refId}&status=${newStatus}`);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          card.classList.add(newStatus.toLowerCase());
+          btnGroup.remove();
+          
+          const badge = document.createElement('span');
+          badge.className = `status-badge ${newStatus.toLowerCase()}`;
+          badge.textContent = newStatus;
+          card.appendChild(badge);
+        } else {
+          alert("Failed to update status.");
+          btnGroup.querySelectorAll('button').forEach(b => b.disabled = false);
+        }
+      } catch (err) {
+        alert("Error connecting to database.");
+        btnGroup.querySelectorAll('button').forEach(b => b.disabled = false);
+      }
+    }
+  </script>
+</body>
+</html>
