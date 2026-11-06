@@ -281,31 +281,30 @@
     }
   </style>
 </head>
-<body>
+<body style="display: none;">
 
   <!-- =========================================
-       SECRET URL GATEKEEPER
+       BULLETPROOF SECRET URL GATEKEEPER
        ========================================= -->
   <script>
-    // Define your secret key here. 
-    // Your Discord link will be: https://ros-reborn-1.onrender.com/admin.html?key=rosreborn_secret_2026
     const SECRET_KEY = "rosreborn_secret_2026"; 
-    
     const urlParams = new URLSearchParams(window.location.search);
-    const userKey = urlParams.get('key');
-
-    if (userKey !== SECRET_KEY) {
-      // If the key is wrong or missing, hide the page and show access denied
-      document.body.innerHTML = `
+    
+    if (urlParams.get('key') === SECRET_KEY) {
+      // Authorized: Show the page
+      document.body.style.display = 'flex';
+    } else {
+      // Unauthorized: Stop parsing the HTML and show Access Denied
+      window.stop(); 
+      document.write(`
         <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; background-color: #f0f7f9; color: #25217F;">
           <div>
             <h1 style="color: #F34CA9; font-size: 36px; margin-bottom: 10px;">Access Denied</h1>
             <p style="font-size: 16px;">You must use the official link provided in the Discord server.</p>
           </div>
         </div>
-      `;
-      // Stop the rest of the page from loading
-      throw new Error("Unauthorized Access");
+      `);
+      document.close();
     }
   </script>
 
