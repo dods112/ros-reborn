@@ -455,6 +455,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page label[for="views"]::before { content: "06 / "; }
 .apply-page label[for="best-content"]::before { content: "07 / "; }
 .apply-page label[for="additional-notes"]::before { content: "08 / "; }
+.apply-page label[for="proof"]::before { content: "09 / "; }
 
 .apply-page .req { color: var(--accent-pink); }
 .apply-page .opt { font-weight: 400; font-size: 13px; color: var(--navy-muted); }
@@ -710,4 +711,39 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 
 @media (prefers-reduced-motion: reduce) {
   .apply-page *, .apply-page *::before, .apply-page *::after { transition: none !important; animation: none !important; }
+}
+
+/* =========================================
+   14. FILE INPUT STYLING
+   ========================================= */
+.apply-page input[type="file"] {
+  padding: 10px 16px;
+  height: auto;
+  background: #f8f9fc;
+  cursor: pointer;
+  color: var(--navy-muted);
+  font-size: 14px;
+  border: 1.5px dashed var(--ap-border); /* Dashed border for file inputs */
+}
+
+.apply-page input[type="file"]:hover {
+  border-color: var(--accent-pink);
+}
+
+.apply-page input[type="file"]::file-selector-button {
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-head);
+  font-weight: 700;
+  margin-right: 16px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.apply-page input[type="file"]::file-selector-button:hover {
+  background: var(--accent-pink);
+  transform: translateY(-1px);
 }
