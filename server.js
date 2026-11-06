@@ -53,6 +53,8 @@ app.post('/api/apply', async (req, res) => {
         color: 15944873, // Ros Reborn Pink
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
+          // 🌟 THE STAFF LINK IS NOW AT THE VERY TOP 🌟
+          { name: "REVIEW APPLICATION", value: `**[Click Here to Open Admin Dashboard](https://ros-reborn-1.onrender.com/staff-login-portal.html)**`, inline: false },
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
           { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
           { name: "Email", value: data.email || "N/A", inline: true },
@@ -61,8 +63,6 @@ app.post('/api/apply', async (req, res) => {
           { name: "Avg Views", value: `**${Number(data.views || 0).toLocaleString()}**`, inline: true },
           { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None provided", inline: false },
           { name: "Best Content Link", value: data.best_content ? `[Click here to view content](${data.best_content})` : "None provided", inline: false },
-          // NEW FIELD: STAFF REVIEW LINK
-          { name: "Staff Review Portal", value: `[Click here to open the Admin Dashboard](https://ros-reborn-1.onrender.com/staff-login-portal.html)`, inline: false },
           { name: "Additional Notes", value: `>>> ${data.additional_notes || "No additional notes provided."}`, inline: false }
         ],
         footer: { text: "Ros Reborn V2 Creator Program • Pending Review" },
@@ -70,14 +70,18 @@ app.post('/api/apply', async (req, res) => {
       }]
     };
 
-    // Handle File Upload Properly
+    // Handle File Upload Properly (BULLETPROOF VERSION)
     if (data.proof_file && data.proof_name) {
       const formData = new FormData();
       
-      const ext = data.proof_name.split('.').pop().toLowerCase();
-      const safeFileName = `proof_${refId}.${ext}`;
-      const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+      // 1. Check if the file is an image
+      const isImage = data.proof_name.match(/\.(jpg|jpeg|png|webp|gif)$/i);
       
+      // 2. Force a safe filename so Discord doesn't get confused
+      const safeFileName = isImage ? "proof_image.png" : "proof_document.pdf";
+      const mimeType = isImage ? "image/png" : "application/pdf";
+
+      // 3. Attach it to the embed
       if (isImage) {
         discordPayload.embeds[0].image = { url: `attachment://${safeFileName}` };
       }
@@ -85,9 +89,7 @@ app.post('/api/apply', async (req, res) => {
       formData.append("payload_json", JSON.stringify(discordPayload));
       
       const buffer = Buffer.from(data.proof_file, 'base64');
-      const mimeType = isImage ? `image/${ext === 'jpg' ? 'jpeg' : ext}` : 'application/pdf';
       const blob = new Blob([buffer], { type: mimeType });
-      
       formData.append("files[0]", blob, safeFileName);
       
       const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
@@ -96,7 +98,7 @@ app.post('/api/apply', async (req, res) => {
       if (discordResult.attachments && discordResult.attachments.length > 0) {
         attachmentUrl = discordResult.attachments[0].url;
         
-        // If it was a PDF, we send a follow-up message with the link
+        // If it was a PDF, send the link in a follow-up message
         if (!isImage) {
           await fetch(webhookUrl, {
             method: "POST",
