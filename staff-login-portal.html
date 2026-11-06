@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Access | Ros Reborn</title>
   
-  <!-- SECURITY: Prevent search engines from indexing this page -->
   <meta name="robots" content="noindex, nofollow">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -109,13 +108,11 @@
       overflow: hidden;
     }
     
-    /* Pink accent stripes */
     .login-art::before {
       content: ""; position: absolute; inset: 0;
       background: repeating-linear-gradient(-45deg, transparent 0, transparent 60px, rgba(243, 76, 169, 0.06) 60px, rgba(243,76,169,0.06) 90px);
     }
 
-    /* Soft glow behind character */
     .login-art::after {
       content: "";
       position: absolute;
@@ -129,7 +126,6 @@
       pointer-events: none;
     }
 
-    /* Character Wrapper */
     .art-char-wrapper {
       position: absolute;
       inset: 0;
@@ -140,23 +136,17 @@
       padding: 0 20px;
     }
     
-    /* The Image itself */
     .art-char-wrapper img {
-      width: 115%; /* Scale up */
+      width: 115%;
       max-width: 550px;
       height: 95%;
       object-fit: contain;
       object-position: bottom center;
-      
-      /* This mask creates the smooth fade at the bottom */
       -webkit-mask-image: linear-gradient(to top, transparent 0%, black 15%, black 100%);
       mask-image: linear-gradient(to top, transparent 0%, black 15%, black 100%);
-      
-      /* Soft shadow to give it depth */
       filter: drop-shadow(0 10px 25px rgba(33, 27, 120, 0.15));
     }
 
-    /* Dedicated Caption Area */
     .art-caption {
       position: absolute;
       bottom: 0;
@@ -164,7 +154,7 @@
       width: 100%;
       z-index: 2;
       background: linear-gradient(to top, #fff 85%, rgba(255, 255, 255, 0));
-      padding: 60px 40px 30px 40px; /* High top padding to let the image fade behind it */
+      padding: 60px 40px 30px 40px;
       text-align: left;
     }
     
@@ -186,7 +176,6 @@
       letter-spacing: 1px;
     }
 
-    /* Decorative sparkles */
     .sparkle { position: absolute; color: var(--accent-cyan); z-index: 3; }
     .sparkle-1 { top: 40px; right: 40px; width: 24px; height: 24px; }
     .sparkle-2 { top: 150px; left: 30px; width: 16px; height: 16px; color: var(--accent-pink); }
@@ -262,15 +251,11 @@
     .secure-login::before, .secure-login::after { content: ""; flex: 1; height: 1px; background: var(--border-color); }
     .secure-login svg { width: 16px; height: 16px; }
 
-    /* Footer */
     .login-footer { text-align: center; margin-top: 40px; color: var(--navy-muted); position: relative; z-index: 10; }
     .login-footer h3 { font-family: var(--font-head); font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; }
     .login-footer h3::before, .login-footer h3::after { content: ""; width: 60px; height: 1px; background: var(--navy-muted); opacity: 0.4; }
     .login-footer p { font-size: 14px; opacity: 0.8; }
 
-    /* =========================================
-       RESPONSIVE DESIGN
-       ========================================= */
     @media (max-width: 900px) {
       .login-container { grid-template-columns: 1fr; max-width: 500px; }
       .login-art { min-height: 400px; }
@@ -281,39 +266,10 @@
     }
   </style>
 </head>
-<body style="display: none;">
+<body>
 
-  <!-- =========================================
-       BULLETPROOF SECRET URL GATEKEEPER
-       ========================================= -->
-  <script>
-    const SECRET_KEY = "rosreborn_secret_2026"; 
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('key') === SECRET_KEY) {
-      // Authorized: Show the page
-      document.body.style.display = 'flex';
-    } else {
-      // Unauthorized: Stop parsing the HTML and show Access Denied
-      window.stop(); 
-      document.write(`
-        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; background-color: #f0f7f9; color: #25217F;">
-          <div>
-            <h1 style="color: #F34CA9; font-size: 36px; margin-bottom: 10px;">Access Denied</h1>
-            <p style="font-size: 16px;">You must use the official link provided in the Discord server.</p>
-          </div>
-        </div>
-      `);
-      document.close();
-    }
-  </script>
-
-  <!-- =========================================
-       LOGIN SCREEN
-       ========================================= -->
   <div id="login-screen">
     
-    <!-- BRANDING -->
     <div class="login-brand">
       <div class="brand-logo">
         <div class="logo-icon">
@@ -327,18 +283,14 @@
       </div>
     </div>
 
-    <!-- MAIN CARD -->
     <div class="login-container">
       
-      <!-- LEFT PANEL -->
       <div class="login-art">
-        <!-- Decorative Stars -->
         <svg class="sparkle sparkle-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
         <svg class="sparkle sparkle-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
         <svg class="sparkle sparkle-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
 
         <div class="art-char-wrapper">
-          <!-- Ensure your path is correct here -->
           <img src="assets/images/girl2.png" alt="Ros Reborn Character">
         </div>
         <div class="art-caption">
@@ -347,7 +299,6 @@
         </div>
       </div>
 
-      <!-- RIGHT PANEL -->
       <div class="login-form-panel">
         <div class="shield-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="12" r="2"></circle><path d="M12 14v4"></path></svg>
@@ -381,16 +332,12 @@
       </div>
     </div>
 
-    <!-- FOOTER -->
     <div class="login-footer">
       <h3>Ros Reborn Creator Program</h3>
       <p>Building a stronger community together.</p>
     </div>
   </div>
 
-  <!-- =========================================
-       DASHBOARD SCREEN (Hidden Initially)
-       ========================================= -->
   <div id="dashboard-screen" style="display: none; min-height: 100vh; background: #f0f7f9;">
     
     <style>
