@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Access | Ros Reborn</title>
   
+  <!-- SECURITY: Prevent search engines from indexing this page -->
+  <meta name="robots" content="noindex, nofollow">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
@@ -279,6 +282,32 @@
   </style>
 </head>
 <body>
+
+  <!-- =========================================
+       SECRET URL GATEKEEPER
+       ========================================= -->
+  <script>
+    // Define your secret key here. 
+    // Your Discord link will be: https://ros-reborn-1.onrender.com/admin.html?key=rosreborn_secret_2026
+    const SECRET_KEY = "rosreborn_secret_2026"; 
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const userKey = urlParams.get('key');
+
+    if (userKey !== SECRET_KEY) {
+      // If the key is wrong or missing, hide the page and show access denied
+      document.body.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; text-align: center; background-color: #f0f7f9; color: #25217F;">
+          <div>
+            <h1 style="color: #F34CA9; font-size: 36px; margin-bottom: 10px;">Access Denied</h1>
+            <p style="font-size: 16px;">You must use the official link provided in the Discord server.</p>
+          </div>
+        </div>
+      `;
+      // Stop the rest of the page from loading
+      throw new Error("Unauthorized Access");
+    }
+  </script>
 
   <!-- =========================================
        LOGIN SCREEN
