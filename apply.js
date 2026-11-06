@@ -1,4 +1,4 @@
-const APPLY_ENDPOINT = 'http://localhost:10000/api/apply';
+const APPLY_ENDPOINT = 'https://ros-reborn.onrender.com/api/apply';
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('apply-form');
