@@ -47,9 +47,9 @@ app.post('/api/apply', async (req, res) => {
   const refId = "RR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
 
   try {
-    console.log("Received application from:", data.ign);
+    console.log("📥 Received application from:", data.ign);
 
-    // CLEAN DISCORD EMBED (No Emojis)
+    // CLEAN DISCORD EMBED
     const discordPayload = {
       embeds: [{
         title: "New Creator Application",
@@ -76,11 +76,12 @@ app.post('/api/apply', async (req, res) => {
       }]
     };
 
-    // Handle the file upload
+    // Handle the file upload properly so it stays INSIDE the embed
     if (data.proof_file && data.proof_name) {
       const formData = new FormData();
       
-      const fileName = "proof_image.png"; 
+      // We give the file a strict name for Discord to reference
+      const fileName = "proof_file.png"; 
       discordPayload.embeds[0].image = { url: `attachment://${fileName}` };
       
       formData.append("payload_json", JSON.stringify(discordPayload));
@@ -103,18 +104,18 @@ app.post('/api/apply', async (req, res) => {
       });
     }
 
-    console.log("Discord notification sent.");
+    console.log("✅ Discord notification sent.");
 
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [refId, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
     });
 
-    console.log("Saved to Turso Database.");
+    console.log("✅ Saved to Turso Database.");
     res.status(200).json({ message: "Application submitted successfully!", refId: refId });
 
   } catch (error) {
-    console.error("Submission Error:", error);
+    console.error("❌ Submission Error:", error);
     res.status(500).json({ message: "Failed to submit application." });
   }
 });
@@ -122,6 +123,7 @@ app.post('/api/apply', async (req, res) => {
 // --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note } = req.query;
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
   try {
     if (action === 'getAll') {
@@ -132,14 +134,53 @@ app.get('/api/admin', async (req, res) => {
       return res.status(200).json({ status: 'success', data: result.rows });
     }
 
+    // --- UPDATE STATUS (AND SEND STAFF LOG TO DISCORD) ---
     if (action === 'update') {
+      // 1. Update Database
       await db.execute({
         sql: "UPDATE applications SET status = ? WHERE ref_id = ?",
         args: [status, refId]
       });
+
+      // 2. Fetch details to send a clean log to Discord
+      const appData = await db.execute({
+        sql: "SELECT ign, discord FROM applications WHERE ref_id = ?",
+        args: [refId]
+      });
+      const applicant = appData.rows[0];
+
+      // 3. Send Staff Action Alert to Discord
+      if (applicant && webhookUrl) {
+        const isApproved = status === 'Approved';
+        
+        const logPayload = {
+          embeds: [{
+            title: `Application ${status}`,
+            description: `A staff member has reviewed an application.`,
+            color: isApproved ? 3066993 : 15158332, // Green for Approved, Red for Declined
+            fields: [
+              { name: "Ref ID", value: `\`${refId}\``, inline: true },
+              { name: "Creator", value: `**${applicant.ign}**`, inline: true },
+              { name: "Discord", value: applicant.discord ? `\`${applicant.discord}\`` : "N/A", inline: true },
+              { name: "New Status", value: `**${status.toUpperCase()}**`, inline: false }
+            ],
+            footer: { text: "Staff Action Log" },
+            timestamp: new Date().toISOString()
+          }]
+        };
+
+        await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(logPayload),
+        });
+        console.log(`✅ Staff action log sent to Discord for ${refId}`);
+      }
+
       return res.status(200).json({ status: 'success' });
     }
 
+    // --- UPDATE STAFF NOTES ---
     if (action === 'updateNote') {
       await db.execute({
         sql: "UPDATE applications SET staff_notes = ? WHERE ref_id = ?",
@@ -195,5 +236,5 @@ app.post('/api/login', (req, res) => {
 // ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
