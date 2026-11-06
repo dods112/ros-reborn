@@ -10,7 +10,14 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Database Setup
+// ==========================================
+// 1. ENVIRONMENT VARIABLES & DATABASE SETUP
+// ==========================================
+if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+  console.error("❌ ERROR: Missing Turso database credentials in .env file.");
+  process.exit(1);
+}
+
 let db;
 try {
   db = createClient({
@@ -20,27 +27,16 @@ try {
   console.log("✅ Database connection initialized.");
 } catch (error) {
   console.error("❌ Failed to initialize database:", error);
+  process.exit(1);
 }
+
+// ==========================================
+// 2. API ROUTES
+// ==========================================
 
 // --- HEALTH CHECK ---
 app.get('/', (req, res) => {
   res.status(200).send("Ros Reborn Backend is running perfectly.");
-});
-
-// --- SECURE ADMIN LOGIN ENDPOINT ---
-app.post('/api/login', (req, res) => {
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminPassword) {
-    return res.status(500).json({ message: "Server configuration error. ADMIN_PASSWORD missing." });
-  }
-
-  if (password === adminPassword) {
-    res.status(200).json({ success: true });
-  } else {
-    res.status(401).json({ success: false, message: "Incorrect password." });
-  }
 });
 
 // --- APPLY ENDPOINT ---
@@ -92,11 +88,14 @@ app.post('/api/apply', async (req, res) => {
       });
     }
 
+    console.log("✅ Discord notification sent.");
+
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [refId, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
     });
 
+    console.log("✅ Saved to Turso Database.");
     res.status(200).json({ message: "Application submitted successfully!", refId: refId });
 
   } catch (error) {
@@ -107,21 +106,32 @@ app.post('/api/apply', async (req, res) => {
 
 // --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
-  const { action, refId, status } = req.query;
+  const { action, refId, status, note } = req.query;
 
   try {
+    // 1. Get All Applications (Includes the new staffNotes)
     if (action === 'getAll') {
       const result = await db.execute(`
-        SELECT id, timestamp, ref_id as refId, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status 
+        SELECT id, timestamp, ref_id as refId, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
         FROM applications ORDER BY id DESC
       `);
       return res.status(200).json({ status: 'success', data: result.rows });
     }
 
+    // 2. Update Application Status
     if (action === 'update') {
       await db.execute({
         sql: "UPDATE applications SET status = ? WHERE ref_id = ?",
         args: [status, refId]
+      });
+      return res.status(200).json({ status: 'success' });
+    }
+
+    // 3. NEW: Update Staff Notes
+    if (action === 'updateNote') {
+      await db.execute({
+        sql: "UPDATE applications SET staff_notes = ? WHERE ref_id = ?",
+        args: [note, refId]
       });
       return res.status(200).json({ status: 'success' });
     }
@@ -151,7 +161,26 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// START SERVER
+// --- SECURE ADMIN LOGIN ENDPOINT ---
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.error("Missing ADMIN_PASSWORD environment variable.");
+    return res.status(500).json({ message: "Server configuration error." });
+  }
+
+  if (password === adminPassword) {
+    res.status(200).json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: "Incorrect password." });
+  }
+});
+
+// ==========================================
+// 3. START THE SERVER
+// ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
