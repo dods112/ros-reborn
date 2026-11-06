@@ -10,14 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ==========================================
-// 1. ENVIRONMENT VARIABLES & DATABASE SETUP
-// ==========================================
-if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
-  console.error("❌ ERROR: Missing Turso database credentials in .env file.");
-  process.exit(1);
-}
-
+// Database Setup
 let db;
 try {
   db = createClient({
@@ -27,16 +20,27 @@ try {
   console.log("✅ Database connection initialized.");
 } catch (error) {
   console.error("❌ Failed to initialize database:", error);
-  process.exit(1);
 }
 
-// ==========================================
-// 2. API ROUTES
-// ==========================================
-
-// --- HEALTH CHECK (Just to test if server is alive) ---
+// --- HEALTH CHECK ---
 app.get('/', (req, res) => {
   res.status(200).send("Ros Reborn Backend is running perfectly.");
+});
+
+// --- SECURE ADMIN LOGIN ENDPOINT ---
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    return res.status(500).json({ message: "Server configuration error. ADMIN_PASSWORD missing." });
+  }
+
+  if (password === adminPassword) {
+    res.status(200).json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: "Incorrect password." });
+  }
 });
 
 // --- APPLY ENDPOINT ---
@@ -88,14 +92,11 @@ app.post('/api/apply', async (req, res) => {
       });
     }
 
-    console.log("✅ Discord notification sent.");
-
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [refId, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
     });
 
-    console.log("✅ Saved to Turso Database.");
     res.status(200).json({ message: "Application submitted successfully!", refId: refId });
 
   } catch (error) {
@@ -150,26 +151,7 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// --- SECURE ADMIN LOGIN ENDPOINT ---
-app.post('/api/login', (req, res) => {
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminPassword) {
-    console.error("Missing ADMIN_PASSWORD environment variable.");
-    return res.status(500).json({ message: "Server configuration error." });
-  }
-
-  if (password === adminPassword) {
-    res.status(200).json({ success: true });
-  } else {
-    res.status(401).json({ success: false, message: "Incorrect password." });
-  }
-});
-
-// ==========================================
-// 3. START THE SERVER
-// ==========================================
+// START SERVER
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
