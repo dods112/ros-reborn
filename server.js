@@ -142,3 +142,22 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
+
+// ==========================================
+// 4. SECURE ADMIN LOGIN ENDPOINT
+// ==========================================
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.error("Missing ADMIN_PASSWORD environment variable.");
+    return res.status(500).json({ message: "Server configuration error." });
+  }
+
+  if (password === adminPassword) {
+    res.status(200).json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: "Incorrect password." });
+  }
+});
