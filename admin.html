@@ -118,7 +118,8 @@
 
   <script>
     const ADMIN_PASSWORD = "rosreborn2026"; 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKmzVB0mmJmnCwdSClouj-_ZXYmKNzwTUbX5arpSAH0KMfETjuIXqYMC8h6SorzpQ/exec"; 
+    // CHANGE THIS TO YOUR RENDER BACKEND URL ONCE DEPLOYED (e.g., https://ros-reborn-backend.onrender.com/api/admin)
+    const API_URL = "http://localhost:10000/api/admin"; 
 
     function login() {
       const pass = document.getElementById('admin-pass').value;
@@ -138,22 +139,12 @@
       debugBox.style.display = 'none';
 
       try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAll`);
-        const rawText = await response.text(); 
-        let result;
-        
-        try {
-          result = JSON.parse(rawText);
-        } catch (e) {
-          debugBox.style.display = 'block';
-          debugBox.innerHTML = `<strong>Google returned an HTML error instead of JSON.</strong><br><br>${rawText}`;
-          grid.innerHTML = "";
-          return;
-        }
+        const response = await fetch(`${API_URL}?action=getAll`);
+        const result = await response.json();
 
         if (result.status === "success") {
           if (result.data.length === 0) {
-            grid.innerHTML = "<p style='color: var(--navy-muted);'>No applications found. Check if your Google Sheet tab is named 'Applications'.</p>";
+            grid.innerHTML = "<p style='color: var(--navy-muted);'>No applications found in the database.</p>";
             return;
           }
 
@@ -269,7 +260,7 @@
       btnGroup.querySelectorAll('button').forEach(b => b.disabled = true);
 
       try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=update&refId=${refId}&status=${newStatus}`);
+        const response = await fetch(`${API_URL}?action=update&refId=${refId}&status=${newStatus}`);
         const result = await response.json();
 
         if (result.status === "success") {

@@ -27,8 +27,8 @@
   </div>
 
   <script>
-    // PUT YOUR GOOGLE APPS SCRIPT URL HERE
-    const GOOGLE_SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+    // CHANGE THIS TO YOUR RENDER BACKEND URL ONCE DEPLOYED (e.g., https://ros-reborn-backend.onrender.com/api/status)
+    const API_URL = "http://localhost:10000/api/status";
 
     document.getElementById('check-btn').addEventListener('click', async () => {
       const query = document.getElementById('search-query').value.trim();
@@ -41,7 +41,7 @@
       document.getElementById('check-btn').textContent = "Checking...";
 
       try {
-        const response = await fetch(`${GOOGLE_SHEET_URL}?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
         const data = await response.json();
 
         resultBox.style.display = "block";

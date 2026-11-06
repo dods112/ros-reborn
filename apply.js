@@ -1,4 +1,4 @@
-const APPLY_ENDPOINT = '/.netlify/functions/apply';
+const APPLY_ENDPOINT = 'http://localhost:10000/api/apply';
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('apply-form');
