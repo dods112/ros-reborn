@@ -74,12 +74,17 @@
 
     /* Branding */
     .login-brand { text-align: center; margin-bottom: 30px; position: relative; }
-    .brand-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .logo-icon { position: relative; width: 80px; height: 80px; margin-bottom: 8px; }
-    .logo-icon svg { width: 100%; height: 100%; fill: var(--accent-pink); filter: drop-shadow(0 4px 10px rgba(243, 76, 169, 0.3)); }
-    .brand-logo h1 { font-family: var(--font-head); font-size: 36px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 2px; line-height: 1; }
-    .brand-logo p { font-size: 13px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: var(--navy-muted); display: flex; align-items: center; gap: 12px; }
-    .brand-logo p::before, .brand-logo p::after { content: ""; width: 30px; height: 1px; background: var(--navy-muted); opacity: 0.5; }
+    .brand-logo { display: flex; flex-direction: column; align-items: center; }
+    
+    /* NEW LOGO STYLING */
+    .login-logo-img {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      object-fit: contain;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 4px 10px rgba(33, 27, 120, 0.15)); /* Gives the logo a slight shadow */
+    }
 
     /* Main Container */
     .login-container {
@@ -263,6 +268,7 @@
       .art-caption { padding: 40px 20px 20px 20px; text-align: center; }
       .art-caption h2 { font-size: 28px; }
       .login-form-panel { padding: 40px 30px; }
+      .login-logo-img { max-width: 220px; }
     }
   </style>
 </head>
@@ -272,14 +278,8 @@
     
     <div class="login-brand">
       <div class="brand-logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M30 80V20H60C72.15 20 82 29.85 82 42C82 51.6 75.75 59.65 67.2 62.3L80 80H65L54.5 64.5H42V80H30ZM42 32V52.5H58C63.8 52.5 68.5 47.8 68.5 42C68.5 36.2 63.8 32 58 32H42Z" fill="currentColor"/>
-            <path d="M15 20 Q 30 5 50 10 Q 70 15 85 30 Q 75 25 60 25 Q 40 25 25 35 Z" fill="var(--accent-cyan)"/>
-          </svg>
-        </div>
-        <h1>ROS REBORN</h1>
-        <p>CREATOR PLATFORM</p>
+        <!-- NEW LOGO IMAGE HERE -->
+        <img src="assets/images/Reborn_Logo_3.png" alt="Ros Reborn Logo" class="login-logo-img">
       </div>
     </div>
 
