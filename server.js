@@ -5,16 +5,19 @@ const cors = require('cors');
 const { createClient } = require('@libsql/client');
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// 1. Check for Environment Variables first
+// ==========================================
+// 1. ENVIRONMENT VARIABLES & DATABASE SETUP
+// ==========================================
 if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
   console.error("❌ ERROR: Missing Turso database credentials in .env file.");
-  process.exit(1); // Kill the server with an error
+  process.exit(1);
 }
 
-// 2. Initialize the Database
 let db;
 try {
   db = createClient({
@@ -27,8 +30,16 @@ try {
   process.exit(1);
 }
 
-// --- API ROUTES ---
+// ==========================================
+// 2. API ROUTES
+// ==========================================
 
+// --- HEALTH CHECK (Just to test if server is alive) ---
+app.get('/', (req, res) => {
+  res.status(200).send("Ros Reborn Backend is running perfectly.");
+});
+
+// --- APPLY ENDPOINT ---
 app.post('/api/apply', async (req, res) => {
   const data = req.body;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -93,6 +104,7 @@ app.post('/api/apply', async (req, res) => {
   }
 });
 
+// --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status } = req.query;
 
@@ -120,6 +132,7 @@ app.get('/api/admin', async (req, res) => {
   }
 });
 
+// --- APPLICANT STATUS ENDPOINT ---
 app.get('/api/status', async (req, res) => {
   const { query } = req.query;
   try {
@@ -137,15 +150,7 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// 3. Start the server
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-});
-
-// ==========================================
-// 4. SECURE ADMIN LOGIN ENDPOINT
-// ==========================================
+// --- SECURE ADMIN LOGIN ENDPOINT ---
 app.post('/api/login', (req, res) => {
   const { password } = req.body;
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -160,4 +165,12 @@ app.post('/api/login', (req, res) => {
   } else {
     res.status(401).json({ success: false, message: "Incorrect password." });
   }
+});
+
+// ==========================================
+// 3. START THE SERVER
+// ==========================================
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
