@@ -1,24 +1,39 @@
 // netlify/functions/apply.js
 
 exports.handler = async (event, context) => {
-  // Only allow POST requests
+  // 1. Only allow POST requests
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  // Check if the webhook URL is configured in Netlify
+  // 2. Check environment variables
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  const googleSheetUrl = process.env.GOOGLE_SHEET_URL;
+
   if (!webhookUrl) {
     console.error("Missing DISCORD_WEBHOOK_URL environment variable.");
     return { statusCode: 500, body: "Server configuration error." };
   }
 
   try {
-    // Parse the form data sent from the frontend
+    // 3. Parse the form data
     const data = JSON.parse(event.body);
 
-    // Build the improved Discord Embed
-        // Build the clean, professional Discord Embed (No Emojis)
+    // 4. Send data to Google Sheets (Database Backup)
+    if (googleSheetUrl) {
+      try {
+        await fetch(googleSheetUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+      } catch (sheetError) {
+        // We log the error, but we don't stop the Discord message if Sheets fails
+        console.error("Google Sheets Error:", sheetError);
+      }
+    }
+
+    // 5. Build the clean, professional Discord Embed (No Emojis)
     const discordPayload = {
       embeds: [
         {
@@ -52,7 +67,7 @@ exports.handler = async (event, context) => {
               inline: true 
             },
             { 
-              // This invisible field forces the next items to start on a new line
+              // Invisible field to force a line break in the grid
               name: "\u200b", 
               value: "\u200b", 
               inline: true 
@@ -83,29 +98,25 @@ exports.handler = async (event, context) => {
 
     let discordResponse;
 
-    // Check if a file was uploaded
+    // 6. Handle the Discord message (with or without a file)
     if (data.proof_file && data.proof_name) {
-      // Discord requires multipart/form-data for file uploads
+      // File was uploaded: Convert Base64 back to Blob and use FormData
       const formData = new FormData();
       
-      // 1. Append the JSON payload
       formData.append("payload_json", JSON.stringify(discordPayload));
       
-      // 2. Convert the Base64 string back to a Blob (Binary Data)
       const buffer = Buffer.from(data.proof_file, 'base64');
       const blob = new Blob([buffer]);
       
-      // 3. Append the file to the form data
       formData.append("files[0]", blob, data.proof_name);
 
-      // Send with multipart/form-data
       discordResponse = await fetch(webhookUrl, {
         method: "POST",
         body: formData,
       });
 
     } else {
-      // No file, just send standard JSON
+      // No file: Send standard JSON
       discordResponse = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,18 +124,19 @@ exports.handler = async (event, context) => {
       });
     }
 
-    // If Discord rejects it, log exactly why so we can see it in the terminal
+    // 7. Check if Discord accepted the message
     if (!discordResponse.ok) {
       const errorText = await discordResponse.text();
       console.error("Discord API Error:", errorText);
       throw new Error(`Discord API error: ${discordResponse.status}`);
     }
 
-    // Return success to the frontend
+    // 8. Return success to the frontend
     return {
       statusCode: 200,
       body: JSON.stringify({ message: "Application submitted successfully!" }),
     };
+
   } catch (error) {
     console.error("Error processing application:", error);
     return {
