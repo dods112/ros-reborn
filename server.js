@@ -52,7 +52,7 @@ app.post('/api/apply', async (req, res) => {
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
-          { name: "Discord", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
+          { name: "Discord User ID", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
           { name: "Email", value: data.email || "N/A", inline: true },
           { name: "Platform", value: `**${data.platform || "N/A"}**`, inline: true },
           { name: "Followers", value: `**${Number(data.followers || 0).toLocaleString()}**`, inline: true },
@@ -66,7 +66,6 @@ app.post('/api/apply', async (req, res) => {
       }]
     };
 
-    // 🌟 BULLETPROOF FILE UPLOAD 🌟
     if (data.proof_file && data.proof_name) {
       try {
         const formData = new FormData();
@@ -77,37 +76,25 @@ app.post('/api/apply', async (req, res) => {
         if (isImage) discordPayload.embeds[0].image = { url: `attachment://${safeFileName}` };
 
         formData.append("payload_json", JSON.stringify(discordPayload));
-        
         const buffer = Buffer.from(data.proof_file, 'base64');
         const blob = new Blob([buffer], { type: mimeType });
         formData.append("files[0]", blob, safeFileName);
         
         const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
-        
-        if (!discordResponse.ok) {
-          console.error("❌ Discord Upload Failed");
-        } else {
+        if (discordResponse.ok) {
           const discordResult = await discordResponse.json();
-          
-          // Check the standard attachments array first
           if (discordResult.attachments && discordResult.attachments.length > 0) {
             attachmentUrl = discordResult.attachments[0].url;
-            console.log("✅ Found URL in attachments:", attachmentUrl);
-          } 
-          // If not there, check if Discord injected it directly into the embed image
-          else if (discordResult.embeds && discordResult.embeds[0] && discordResult.embeds[0].image && discordResult.embeds[0].image.url) {
+          } else if (discordResult.embeds && discordResult.embeds[0].image) {
             attachmentUrl = discordResult.embeds[0].image.url;
-            console.log("✅ Found URL in embed:", attachmentUrl);
           }
         }
       } catch (err) {
-        console.error("❌ Error during Discord file upload:", err);
+        console.error("Discord upload error:", err);
       }
     } else {
       await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
-
-    console.log("Saving to DB. URL:", attachmentUrl);
 
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -124,6 +111,7 @@ app.post('/api/apply', async (req, res) => {
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  const botToken = process.env.DISCORD_BOT_TOKEN;
 
   try {
     if (action === 'getAll') {
@@ -135,6 +123,8 @@ app.get('/api/admin', async (req, res) => {
     }
 
     if (action === 'update') {
+      console.log(`\n--- 🚀 STARTING UPDATE ACTION for ${refId} to ${status} ---`);
+      
       await db.execute({
         sql: "UPDATE applications SET status = ? WHERE ref_id = ?",
         args: [status, refId]
@@ -157,11 +147,7 @@ app.get('/api/admin', async (req, res) => {
         ];
 
         if (applicant.staff_notes && applicant.staff_notes.trim() !== "") {
-          receiptFields.push({
-            name: "Staff Note",
-            value: `>>> ${applicant.staff_notes}`,
-            inline: false
-          });
+          receiptFields.push({ name: "Staff Note", value: `>>> ${applicant.staff_notes}`, inline: false });
         }
 
         const receiptPayload = {
@@ -177,7 +163,61 @@ app.get('/api/admin', async (req, res) => {
         };
         
         await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(receiptPayload) });
+        console.log("✅ Receipt sent to Webhook.");
       }
+
+      // 🌟 LOUD LOGGING FOR DM 🌟
+      if (!applicant || !applicant.discord) {
+        console.log(`❌ DM SKIPPED: Applicant doesn't have a Discord ID in the database.`);
+      } else if (!botToken) {
+        console.log(`❌ DM SKIPPED: DISCORD_BOT_TOKEN is missing in Render Environment Variables!`);
+      } else {
+        console.log(`📡 Attempting to send DM to User ID: ${applicant.discord}...`);
+        try {
+          const dmChannelReq = await fetch('https://discord.com/api/v10/users/@me/channels', {
+            method: 'POST',
+            headers: { 'Authorization': `Bot ${botToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient_id: applicant.discord })
+          });
+
+          if (dmChannelReq.ok) {
+            const dmChannel = await dmChannelReq.json();
+            const isApproved = status === 'Approved';
+            
+            const dmMessage = {
+              embeds: [{
+                title: `Application ${status}`,
+                description: isApproved 
+                  ? `Congratulations **${applicant.ign}**! Your application to the Ros Reborn Creator Program has been **APPROVED**.\n\nOur staff will reach out to you shortly on the server with your creator role and next steps.`
+                  : `Hello **${applicant.ign}**, unfortunately your application to the Ros Reborn Creator Program has been **DECLINED** at this time.\n\nYou are welcome to apply again in the future as your channel grows.`,
+                color: isApproved ? 3066993 : 15158332,
+                fields: [{ name: "Ref ID", value: `\`${refId}\``, inline: true }],
+                footer: { text: "Ros Reborn V2 Creator Program" },
+                timestamp: new Date().toISOString()
+              }]
+            };
+
+            const msgReq = await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bot ${botToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(dmMessage)
+            });
+            
+            if (msgReq.ok) {
+                console.log(`✅ Discord DM successfully sent to ${applicant.ign}!`);
+            } else {
+                console.log(`❌ Failed to send DM message. Error:`, await msgReq.text());
+            }
+          } else {
+            console.log(`❌ Could not open DM channel. Error:`, await dmChannelReq.text());
+            console.log(`💡 Make sure the user shares a server with the bot and has "Allow DMs from server members" ON.`);
+          }
+        } catch (dmError) {
+          console.error("❌ Error sending Discord DM:", dmError);
+        }
+      }
+      console.log(`--- 🏁 FINISHED UPDATE ACTION ---\n`);
+
       return res.status(200).json({ status: 'success' });
     }
 
