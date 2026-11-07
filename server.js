@@ -5,19 +5,22 @@ const cors = require('cors');
 const { createClient } = require('@libsql/client');
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // ==========================================
-// 1. ENVIRONMENT & DATABASE SETUP
+// STAFF DATABASE (Add your staff codes here)
 // ==========================================
-if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
-  console.error("ERROR: Missing Turso database credentials.");
-  process.exit(1);
-}
+const STAFF_DATABASE = {
+  "DODS2026": "Dods",
+  "HOLLY2026": "Holly",
+  "XIA2026": "Maam Xia",
+  "ADMIN123": "Admin"
+};
 
+// ==========================================
+// DATABASE SETUP
+// ==========================================
 let db;
 try {
   db = createClient({
@@ -27,16 +30,13 @@ try {
   console.log("Database connection initialized.");
 } catch (error) {
   console.error("Failed to initialize database:", error);
-  process.exit(1);
 }
 
 // ==========================================
-// 2. API ROUTES
+// API ROUTES
 // ==========================================
-
 app.get('/', (req, res) => res.status(200).send("Ros Reborn Backend is running perfectly."));
 
-// --- APPLY ENDPOINT ---
 app.post('/api/apply', async (req, res) => {
   const data = req.body;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -44,8 +44,6 @@ app.post('/api/apply', async (req, res) => {
   const refId = "RR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
 
   try {
-    console.log("Received application from:", data.ign);
-
     const discordPayload = {
       embeds: [{
         title: "New Creator Application",
@@ -53,35 +51,34 @@ app.post('/api/apply', async (req, res) => {
         color: 15944873, // Ros Reborn Pink
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
-          // 🌟 THE STAFF LINK IS NOW AT THE VERY TOP 🌟
-          { name: "REVIEW APPLICATION", value: `**[Click Here to Open Admin Dashboard](https://ros-reborn-1.onrender.com/staff-login-portal.html)**`, inline: false },
+          // 🌟 THE LINK IS NOW AT THE VERY TOP 🌟
+          { name: "STAFF ACTION", value: `**[Click Here to Review this Application](https://ros-reborn-1.onrender.com/staff-login-portal.html)**`, inline: false },
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
-          { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
+          { name: "Discord", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
           { name: "Email", value: data.email || "N/A", inline: true },
           { name: "Platform", value: `**${data.platform || "N/A"}**`, inline: true },
           { name: "Followers", value: `**${Number(data.followers || 0).toLocaleString()}**`, inline: true },
           { name: "Avg Views", value: `**${Number(data.views || 0).toLocaleString()}**`, inline: true },
-          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None provided", inline: false },
-          { name: "Best Content Link", value: data.best_content ? `[Click here to view content](${data.best_content})` : "None provided", inline: false },
-          { name: "Additional Notes", value: `>>> ${data.additional_notes || "No additional notes provided."}`, inline: false }
+          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None", inline: false },
+          { name: "Additional Notes", value: `>>> ${data.additional_notes || "None"}`, inline: false }
         ],
         footer: { text: "Ros Reborn V2 Creator Program • Pending Review" },
         timestamp: new Date().toISOString()
       }]
     };
 
-    // Handle File Upload Properly (BULLETPROOF VERSION)
+    // BULLETPROOF IMAGE HANDLING
     if (data.proof_file && data.proof_name) {
       const formData = new FormData();
       
-      // 1. Check if the file is an image
+      // Determine if it's an image or PDF based on extension
       const isImage = data.proof_name.match(/\.(jpg|jpeg|png|webp|gif)$/i);
       
-      // 2. Force a safe filename so Discord doesn't get confused
+      // Force a clean filename so Discord doesn't get confused
       const safeFileName = isImage ? "proof_image.png" : "proof_document.pdf";
       const mimeType = isImage ? "image/png" : "application/pdf";
 
-      // 3. Attach it to the embed
+      // Reference the attachment inside the embed
       if (isImage) {
         discordPayload.embeds[0].image = { url: `attachment://${safeFileName}` };
       }
@@ -92,50 +89,41 @@ app.post('/api/apply', async (req, res) => {
       const blob = new Blob([buffer], { type: mimeType });
       formData.append("files[0]", blob, safeFileName);
       
+      // Send to Discord and get the URL back
       const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
       const discordResult = await discordResponse.json();
       
       if (discordResult.attachments && discordResult.attachments.length > 0) {
         attachmentUrl = discordResult.attachments[0].url;
         
-        // If it was a PDF, send the link in a follow-up message
+        // If it was a PDF, send a separate message with the link
         if (!isImage) {
           await fetch(webhookUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: `**View Proof of Ownership (PDF):** [Click Here](${attachmentUrl})`
-            })
+            body: JSON.stringify({ content: `**View Proof of Ownership (PDF):** [Click Here](${attachmentUrl})` })
           });
         }
       }
     } else {
-      await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(discordPayload),
-      });
+      // No file uploaded
+      await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
-
-    console.log("Discord notification sent.");
 
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [refId, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
     });
 
-    console.log("Saved to Turso Database.");
     res.status(200).json({ message: "Application submitted successfully!", refId: refId });
-
   } catch (error) {
     console.error("Submission Error:", error);
     res.status(500).json({ message: "Failed to submit application." });
   }
 });
 
-// --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
-  const { action, refId, status, note } = req.query;
+  const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
   try {
@@ -164,12 +152,12 @@ app.get('/api/admin', async (req, res) => {
         const logPayload = {
           embeds: [{
             title: `Application ${status}`,
-            description: `A staff member has reviewed an application.`,
+            description: `An application has been reviewed.`,
             color: isApproved ? 3066993 : 15158332,
             fields: [
+              { name: "Reviewed By", value: `**${staffName || "Unknown Staff"}**`, inline: true }, 
               { name: "Ref ID", value: `\`${refId}\``, inline: true },
               { name: "Creator", value: `**${applicant.ign}**`, inline: true },
-              { name: "Discord", value: applicant.discord ? `\`${applicant.discord}\`` : "N/A", inline: true },
               { name: "New Status", value: `**${status.toUpperCase()}**`, inline: false }
             ],
             footer: { text: "Staff Action Log" },
@@ -178,7 +166,6 @@ app.get('/api/admin', async (req, res) => {
         };
         await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(logPayload) });
       }
-
       return res.status(200).json({ status: 'success' });
     }
 
@@ -197,7 +184,6 @@ app.get('/api/admin', async (req, res) => {
   }
 });
 
-// --- APPLICANT STATUS ENDPOINT ---
 app.get('/api/status', async (req, res) => {
   const { query } = req.query;
   try {
@@ -205,7 +191,6 @@ app.get('/api/status', async (req, res) => {
       sql: "SELECT ref_id, ign, status FROM applications WHERE UPPER(ref_id) = UPPER(?) OR LOWER(discord) = LOWER(?)",
       args: [query, query]
     });
-
     if (result.rows.length > 0) {
       return res.status(200).json({ status: 'success', refId: result.rows[0].ref_id, ign: result.rows[0].ign, result: result.rows[0].status });
     }
@@ -215,16 +200,17 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// --- SECURE ADMIN LOGIN ENDPOINT ---
 app.post('/api/login', (req, res) => {
-  const { password } = req.body;
-  if (password === process.env.ADMIN_PASSWORD) res.status(200).json({ success: true });
-  else res.status(401).json({ success: false, message: "Incorrect password." });
+  const { code } = req.body;
+  const staffName = STAFF_DATABASE[code.toUpperCase()];
+
+  if (staffName) {
+    res.status(200).json({ success: true, staffName: staffName });
+  } else {
+    res.status(401).json({ success: false, message: "Invalid staff code." });
+  }
 });
 
-// ==========================================
-// 3. START THE SERVER
-// ==========================================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
