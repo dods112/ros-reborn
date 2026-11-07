@@ -52,7 +52,8 @@ app.post('/api/apply', async (req, res) => {
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
-          { name: "Discord User ID", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
+          // 🌟 CHANGED THIS TO DISCORD USERNAME 🌟
+          { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true }, 
           { name: "Email", value: data.email || "N/A", inline: true },
           { name: "Platform", value: `**${data.platform || "N/A"}**`, inline: true },
           { name: "Followers", value: `**${Number(data.followers || 0).toLocaleString()}**`, inline: true },
@@ -112,6 +113,7 @@ app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   const botToken = process.env.DISCORD_BOT_TOKEN;
+  const guildId = process.env.DISCORD_GUILD_ID;
 
   try {
     if (action === 'getAll') {
@@ -166,58 +168,90 @@ app.get('/api/admin', async (req, res) => {
         console.log("✅ Receipt sent to Webhook.");
       }
 
-      // 🌟 LOUD LOGGING FOR DM 🌟
-      if (!applicant || !applicant.discord) {
-        console.log(`❌ DM SKIPPED: Applicant doesn't have a Discord ID in the database.`);
-      } else if (!botToken) {
-        console.log(`❌ DM SKIPPED: DISCORD_BOT_TOKEN is missing in Render Environment Variables!`);
-      } else {
-        console.log(`📡 Attempting to send DM to User ID: ${applicant.discord}...`);
-        try {
-          const dmChannelReq = await fetch('https://discord.com/api/v10/users/@me/channels', {
-            method: 'POST',
-            headers: { 'Authorization': `Bot ${botToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient_id: applicant.discord })
-          });
+      // 🌟 AUTO-RESOLVE USERNAME TO ID 🌟
+      if (applicant && applicant.discord && botToken) {
+        let targetUserId = applicant.discord;
 
-          if (dmChannelReq.ok) {
-            const dmChannel = await dmChannelReq.json();
-            const isApproved = status === 'Approved';
+        // If the input is not just numbers, assume it's a username and search the server
+        if (isNaN(targetUserId)) {
+          if (!guildId) {
+            console.log(`❌ DM SKIPPED: DISCORD_GUILD_ID is missing in Render Environment Variables!`);
+          } else {
+            console.log(`🔍 Resolving username "${targetUserId}" to User ID...`);
+            // Remove the @ symbol if they typed it
+            const cleanUsername = targetUserId.replace('@', '');
+            const searchUrl = `https://discord.com/api/v10/guilds/${guildId}/members/search?query=${encodeURIComponent(cleanUsername)}&limit=1`;
             
-            const dmMessage = {
-              embeds: [{
-                title: `Application ${status}`,
-                description: isApproved 
-                  ? `Congratulations **${applicant.ign}**! Your application to the Ros Reborn Creator Program has been **APPROVED**.\n\nOur staff will reach out to you shortly on the server with your creator role and next steps.`
-                  : `Hello **${applicant.ign}**, unfortunately your application to the Ros Reborn Creator Program has been **DECLINED** at this time.\n\nYou are welcome to apply again in the future as your channel grows.`,
-                color: isApproved ? 3066993 : 15158332,
-                fields: [{ name: "Ref ID", value: `\`${refId}\``, inline: true }],
-                footer: { text: "Ros Reborn V2 Creator Program" },
-                timestamp: new Date().toISOString()
-              }]
-            };
+            const searchRes = await fetch(searchUrl, {
+              headers: { 'Authorization': `Bot ${botToken}` }
+            });
 
-            const msgReq = await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+            if (searchRes.ok) {
+              const searchData = await searchRes.json();
+              if (searchData && searchData.length > 0) {
+                targetUserId = searchData[0].user.id;
+                console.log(`✅ Found User ID: ${targetUserId}`);
+              } else {
+                console.log(`❌ Could not find user "${cleanUsername}" in the Discord server.`);
+                targetUserId = null;
+              }
+            } else {
+              console.log(`❌ Error searching for user. Check if "Server Members Intent" is enabled.`);
+              targetUserId = null;
+            }
+          }
+        }
+
+        // Send the DM if we have a valid User ID
+        if (targetUserId) {
+          console.log(`📡 Attempting to send DM to User ID: ${targetUserId}...`);
+          try {
+            const dmChannelReq = await fetch('https://discord.com/api/v10/users/@me/channels', {
               method: 'POST',
               headers: { 'Authorization': `Bot ${botToken}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify(dmMessage)
+              body: JSON.stringify({ recipient_id: targetUserId })
             });
-            
-            if (msgReq.ok) {
-                console.log(`✅ Discord DM successfully sent to ${applicant.ign}!`);
-            } else {
-                console.log(`❌ Failed to send DM message. Error:`, await msgReq.text());
-            }
-          } else {
-            console.log(`❌ Could not open DM channel. Error:`, await dmChannelReq.text());
-            console.log(`💡 Make sure the user shares a server with the bot and has "Allow DMs from server members" ON.`);
-          }
-        } catch (dmError) {
-          console.error("❌ Error sending Discord DM:", dmError);
-        }
-      }
-      console.log(`--- 🏁 FINISHED UPDATE ACTION ---\n`);
 
+            if (dmChannelReq.ok) {
+              const dmChannel = await dmChannelReq.json();
+              const isApproved = status === 'Approved';
+              
+              const dmMessage = {
+                embeds: [{
+                  title: `Application ${status}`,
+                  description: isApproved 
+                    ? `Congratulations **${applicant.ign}**! Your application to the Ros Reborn Creator Program has been **APPROVED**.\n\nOur staff will reach out to you shortly on the server with your creator role and next steps.`
+                    : `Hello **${applicant.ign}**, unfortunately your application to the Ros Reborn Creator Program has been **DECLINED** at this time.\n\nYou are welcome to apply again in the future as your channel grows.`,
+                  color: isApproved ? 3066993 : 15158332,
+                  fields: [{ name: "Ref ID", value: `\`${refId}\``, inline: true }],
+                  footer: { text: "Ros Reborn V2 Creator Program" },
+                  timestamp: new Date().toISOString()
+                }]
+              };
+
+              const msgReq = await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bot ${botToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(dmMessage)
+              });
+              
+              if (msgReq.ok) {
+                  console.log(`✅ Discord DM successfully sent to ${applicant.ign}!`);
+              } else {
+                  console.log(`❌ Failed to send DM message. Error:`, await msgReq.text());
+              }
+            } else {
+              console.log(`❌ Could not open DM channel. Error:`, await dmChannelReq.text());
+            }
+          } catch (dmError) {
+            console.error("❌ Error sending Discord DM:", dmError);
+          }
+        }
+      } else {
+        console.log(`❌ DM SKIPPED: Missing applicant discord info or bot token.`);
+      }
+      
+      console.log(`--- 🏁 FINISHED UPDATE ACTION ---\n`);
       return res.status(200).json({ status: 'success' });
     }
 
