@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // ==========================================
-// 1. STAFF DATABASE (ADD/EDIT YOUR STAFF HERE)
+// 1. STAFF DATABASE
 // ==========================================
 const STAFF_DATABASE = {
   "DODS2026": "Dods",
@@ -37,7 +37,6 @@ try {
 // ==========================================
 app.get('/', (req, res) => res.status(200).send("Ros Reborn Backend is running perfectly."));
 
-// --- APPLY ENDPOINT ---
 app.post('/api/apply', async (req, res) => {
   const data = req.body;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -49,18 +48,17 @@ app.post('/api/apply', async (req, res) => {
       embeds: [{
         title: "New Creator Application",
         description: `A new creator has submitted an application.\n**Ref ID:** \`${refId}\``,
-        color: 15944873, // Ros Reborn Pink
+        color: 15944873,
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
-          { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
+          { name: "Discord", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
           { name: "Email", value: data.email || "N/A", inline: true },
           { name: "Platform", value: `**${data.platform || "N/A"}**`, inline: true },
           { name: "Followers", value: `**${Number(data.followers || 0).toLocaleString()}**`, inline: true },
           { name: "Avg Views", value: `**${Number(data.views || 0).toLocaleString()}**`, inline: true },
-          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None provided", inline: false },
-          { name: "Additional Notes", value: `>>> ${data.additional_notes || "No additional notes provided."}`, inline: false },
-          // 🌟 THE LINK IS NOW AT THE VERY BOTTOM 🌟
+          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None", inline: false },
+          { name: "Additional Notes", value: `>>> ${data.additional_notes || "None"}`, inline: false },
           { name: "Staff Action Required", value: `**[Click Here to Open Admin Dashboard](https://ros-reborn-1.onrender.com/staff-login-portal.html)**`, inline: false }
         ],
         footer: { text: "Ros Reborn V2 Creator Program • Pending Review" },
@@ -110,7 +108,6 @@ app.post('/api/apply', async (req, res) => {
   }
 });
 
-// --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -124,37 +121,46 @@ app.get('/api/admin', async (req, res) => {
       return res.status(200).json({ status: 'success', data: result.rows });
     }
 
-    // 🌟 THE RECEIPT SYSTEM 🌟
     if (action === 'update') {
-      // 1. Update Database
       await db.execute({
         sql: "UPDATE applications SET status = ? WHERE ref_id = ?",
         args: [status, refId]
       });
 
-      // 2. Fetch details
+      // 🌟 FETCH staff_notes ALONG WITH OTHER DETAILS 🌟
       const appData = await db.execute({
-        sql: "SELECT ign, discord FROM applications WHERE ref_id = ?",
+        sql: "SELECT ign, discord, staff_notes FROM applications WHERE ref_id = ?",
         args: [refId]
       });
       const applicant = appData.rows[0];
 
-      // 3. Send the RECEIPT to Discord
       if (applicant && webhookUrl) {
         const isApproved = status === 'Approved';
         
+        // Build the fields array
+        let receiptFields = [
+          { name: "Reviewed By", value: `**${staffName || "Unknown Staff"}**`, inline: true }, 
+          { name: "Ref ID", value: `\`${refId}\``, inline: true },
+          { name: "Applicant", value: `**${applicant.ign}**`, inline: true },
+          { name: "Action Taken", value: `**${status.toUpperCase()}**`, inline: false }
+        ];
+
+        // 🌟 ADD STAFF NOTE IF IT EXISTS 🌟
+        if (applicant.staff_notes && applicant.staff_notes.trim() !== "") {
+          receiptFields.push({
+            name: "Staff Note",
+            value: `>>> ${applicant.staff_notes}`, // ">>>" makes it a blockquote in Discord
+            inline: false
+          });
+        }
+
         const receiptPayload = {
           content: `**STAFF RECEIPT**`,
           embeds: [{
             title: `Application ${status}`,
             description: `This is a system receipt confirming a staff action.`,
-            color: isApproved ? 3066993 : 15158332, // Green for Approved, Red for Declined
-            fields: [
-              { name: "Reviewed By", value: `**${staffName || "Unknown Staff"}**`, inline: true }, 
-              { name: "Ref ID", value: `\`${refId}\``, inline: true },
-              { name: "Applicant", value: `**${applicant.ign}**`, inline: true },
-              { name: "Action Taken", value: `**${status.toUpperCase()}**`, inline: false }
-            ],
+            color: isApproved ? 3066993 : 15158332,
+            fields: receiptFields,
             footer: { text: "Ros Reborn Staff Accountability Log" },
             timestamp: new Date().toISOString()
           }]
@@ -180,7 +186,6 @@ app.get('/api/admin', async (req, res) => {
   }
 });
 
-// --- APPLICANT STATUS ENDPOINT ---
 app.get('/api/status', async (req, res) => {
   const { query } = req.query;
   try {
@@ -197,10 +202,9 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// --- SECURE STAFF LOGIN ---
 app.post('/api/login', (req, res) => {
   const { code } = req.body;
-  const staffName = STAFF_DATABASE[code.toUpperCase()]; // Converts input to uppercase
+  const staffName = STAFF_DATABASE[code.toUpperCase()];
 
   if (staffName) {
     res.status(200).json({ success: true, staffName: staffName });
