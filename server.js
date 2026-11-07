@@ -66,33 +66,39 @@ app.post('/api/apply', async (req, res) => {
       }]
     };
 
+    // 🌟 BULLETPROOF FILE UPLOAD WITH ERROR LOGGING 🌟
     if (data.proof_file && data.proof_name) {
-      const formData = new FormData();
-      const isImage = data.proof_name.match(/\.(jpg|jpeg|png|webp|gif)$/i);
-      const safeFileName = isImage ? "proof_image.png" : "proof_document.pdf";
-      const mimeType = isImage ? "image/png" : "application/pdf";
+      try {
+        const formData = new FormData();
+        const isImage = data.proof_name.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+        const safeFileName = isImage ? "proof_image.png" : "proof_document.pdf";
+        const mimeType = isImage ? "image/png" : "application/pdf";
 
-      if (isImage) discordPayload.embeds[0].image = { url: `attachment://${safeFileName}` };
+        if (isImage) discordPayload.embeds[0].image = { url: `attachment://${safeFileName}` };
 
-      formData.append("payload_json", JSON.stringify(discordPayload));
-      const buffer = Buffer.from(data.proof_file, 'base64');
-      const blob = new Blob([buffer], { type: mimeType });
-      formData.append("files[0]", blob, safeFileName);
-      
-      const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
-      const discordResult = await discordResponse.json();
-      
-      if (discordResult.attachments && discordResult.attachments.length > 0) {
-        attachmentUrl = discordResult.attachments[0].url;
-        if (!isImage) {
-          await fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: `**View Proof of Ownership (PDF):** [Click Here](${attachmentUrl})` })
-          });
+        formData.append("payload_json", JSON.stringify(discordPayload));
+        
+        const buffer = Buffer.from(data.proof_file, 'base64');
+        const blob = new Blob([buffer], { type: mimeType });
+        formData.append("files[0]", blob, safeFileName);
+        
+        const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
+        
+        if (!discordResponse.ok) {
+          const errorText = await discordResponse.text();
+          console.error("❌ Discord Upload Failed:", discordResponse.status, errorText);
+        } else {
+          const discordResult = await discordResponse.json();
+          if (discordResult.attachments && discordResult.attachments.length > 0) {
+            attachmentUrl = discordResult.attachments[0].url;
+            console.log("✅ File uploaded to Discord:", attachmentUrl);
+          }
         }
+      } catch (err) {
+        console.error("❌ Error during Discord file upload:", err);
       }
     } else {
+      // No file uploaded, just send embed
       await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
 
@@ -127,7 +133,6 @@ app.get('/api/admin', async (req, res) => {
         args: [status, refId]
       });
 
-      // 🌟 FETCH staff_notes ALONG WITH OTHER DETAILS 🌟
       const appData = await db.execute({
         sql: "SELECT ign, discord, staff_notes FROM applications WHERE ref_id = ?",
         args: [refId]
@@ -137,7 +142,6 @@ app.get('/api/admin', async (req, res) => {
       if (applicant && webhookUrl) {
         const isApproved = status === 'Approved';
         
-        // Build the fields array
         let receiptFields = [
           { name: "Reviewed By", value: `**${staffName || "Unknown Staff"}**`, inline: true }, 
           { name: "Ref ID", value: `\`${refId}\``, inline: true },
@@ -145,11 +149,10 @@ app.get('/api/admin', async (req, res) => {
           { name: "Action Taken", value: `**${status.toUpperCase()}**`, inline: false }
         ];
 
-        // 🌟 ADD STAFF NOTE IF IT EXISTS 🌟
         if (applicant.staff_notes && applicant.staff_notes.trim() !== "") {
           receiptFields.push({
             name: "Staff Note",
-            value: `>>> ${applicant.staff_notes}`, // ">>>" makes it a blockquote in Discord
+            value: `>>> ${applicant.staff_notes}`,
             inline: false
           });
         }
