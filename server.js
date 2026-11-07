@@ -66,7 +66,7 @@ app.post('/api/apply', async (req, res) => {
       }]
     };
 
-    // 🌟 BULLETPROOF FILE UPLOAD WITH ERROR LOGGING 🌟
+    // 🌟 BULLETPROOF FILE UPLOAD 🌟
     if (data.proof_file && data.proof_name) {
       try {
         const formData = new FormData();
@@ -85,22 +85,29 @@ app.post('/api/apply', async (req, res) => {
         const discordResponse = await fetch(webhookUrl + "?wait=true", { method: "POST", body: formData });
         
         if (!discordResponse.ok) {
-          const errorText = await discordResponse.text();
-          console.error("❌ Discord Upload Failed:", discordResponse.status, errorText);
+          console.error("❌ Discord Upload Failed");
         } else {
           const discordResult = await discordResponse.json();
+          
+          // Check the standard attachments array first
           if (discordResult.attachments && discordResult.attachments.length > 0) {
             attachmentUrl = discordResult.attachments[0].url;
-            console.log("✅ File uploaded to Discord:", attachmentUrl);
+            console.log("✅ Found URL in attachments:", attachmentUrl);
+          } 
+          // If not there, check if Discord injected it directly into the embed image
+          else if (discordResult.embeds && discordResult.embeds[0] && discordResult.embeds[0].image && discordResult.embeds[0].image.url) {
+            attachmentUrl = discordResult.embeds[0].image.url;
+            console.log("✅ Found URL in embed:", attachmentUrl);
           }
         }
       } catch (err) {
         console.error("❌ Error during Discord file upload:", err);
       }
     } else {
-      // No file uploaded, just send embed
       await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
+
+    console.log("Saving to DB. URL:", attachmentUrl);
 
     await db.execute({
       sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
