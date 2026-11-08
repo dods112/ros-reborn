@@ -9,13 +9,24 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // ==========================================
-// 1. STAFF DATABASE
+// 1. STAFF DATABASE (Esports Call Signs)
 // ==========================================
 const STAFF_DATABASE = {
-  "DODS2026": "Dods",
-  "HOLLY2026": "Holly",
-  "XIA2026": "Maam Xia",
-  "ADMIN123": "Admin"
+  "Vortex": "Xaii",
+  "Aegis": "Odh",
+  "Nova": "Molly (Dir)",
+  "Titan": "Seyp",
+  "Phantom": "Molly (Dev)",
+  "Blaze": "Azulaè",
+  "Cipher": "Honeypot",
+  "Zenith": "JIN",
+  "Eclipse": "0 Day's",
+  "Vanguard": "Eli",
+  "Spectral": "Ame",
+  "Onyx": "Hxnzu",
+  "Rogue": "Xav",
+  "Falcon": "azr",
+  "Aurora": "Madam Nikki"
 };
 
 // ==========================================
@@ -37,6 +48,7 @@ try {
 // ==========================================
 app.get('/', (req, res) => res.status(200).send("Ros Reborn Backend is running perfectly."));
 
+// --- APPLY ENDPOINT ---
 app.post('/api/apply', async (req, res) => {
   const data = req.body;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -111,6 +123,7 @@ app.post('/api/apply', async (req, res) => {
   }
 });
 
+// --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -154,7 +167,6 @@ app.get('/api/admin', async (req, res) => {
           receiptFields.push({ name: "Staff Note", value: `>>> ${applicant.staff_notes}`, inline: false });
         }
 
-        // 🌟 FIXED: Removed the "content" line to fix the mobile Discord bug 🌟
         const receiptPayload = {
           embeds: [{
             title: `Application ${status}`,
@@ -283,7 +295,7 @@ app.get('/api/status', async (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { code } = req.body;
-  const staffName = STAFF_DATABASE[code.toUpperCase()];
+  const staffName = STAFF_DATABASE[code];
 
   if (staffName) {
     res.status(200).json({ success: true, staffName: staffName });
