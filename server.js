@@ -52,13 +52,15 @@ app.post('/api/apply', async (req, res) => {
         thumbnail: { url: "https://ros-reborn-1.onrender.com/assets/images/Reborn_Logo_3.png" },
         fields: [
           { name: "In-Game Name", value: `**${data.ign || "N/A"}**`, inline: true },
-          // 🌟 CHANGED THIS TO DISCORD USERNAME 🌟
-          { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true }, 
+          { name: "Legal Name", value: `**${data.legal_name || "N/A"}**`, inline: true },
+          { name: "Program Edition", value: `**${data.edition === 'streamer' ? 'Streamer' : 'Content Creator'}**`, inline: true },
+          { name: "Discord Username", value: data.discord ? `\`${data.discord}\`` : "N/A", inline: true },
           { name: "Email", value: data.email || "N/A", inline: true },
           { name: "Platform", value: `**${data.platform || "N/A"}**`, inline: true },
           { name: "Followers", value: `**${Number(data.followers || 0).toLocaleString()}**`, inline: true },
           { name: "Avg Views", value: `**${Number(data.views || 0).toLocaleString()}**`, inline: true },
-          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None", inline: false },
+          { name: "Channel URL", value: data.channel ? `[Click here to view channel](${data.channel})` : "None", inline: true },
+          { name: "Best Content Link", value: data.best_content ? `[Click here to view content](${data.best_content})` : "None", inline: false },
           { name: "Additional Notes", value: `>>> ${data.additional_notes || "None"}`, inline: false },
           { name: "Staff Action Required", value: `**[Click Here to Open Admin Dashboard](https://ros-reborn-1.onrender.com/staff-login-portal.html)**`, inline: false }
         ],
@@ -97,9 +99,10 @@ app.post('/api/apply', async (req, res) => {
       await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
 
+    // UPDATED INSERT QUERY
     await db.execute({
-      sql: `INSERT INTO applications (ref_id, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [refId, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
+      sql: `INSERT INTO applications (ref_id, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [refId, data.legal_name, data.edition, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
     });
 
     res.status(200).json({ message: "Application submitted successfully!", refId: refId });
@@ -118,7 +121,7 @@ app.get('/api/admin', async (req, res) => {
   try {
     if (action === 'getAll') {
       const result = await db.execute(`
-        SELECT id, timestamp, ref_id as refId, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
+        SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
         FROM applications ORDER BY id DESC
       `);
       return res.status(200).json({ status: 'success', data: result.rows });
@@ -168,17 +171,15 @@ app.get('/api/admin', async (req, res) => {
         console.log("✅ Receipt sent to Webhook.");
       }
 
-      // 🌟 AUTO-RESOLVE USERNAME TO ID 🌟
       if (applicant && applicant.discord && botToken) {
         let targetUserId = applicant.discord;
 
-        // If the input is not just numbers, assume it's a username and search the server
         if (isNaN(targetUserId)) {
           if (!guildId) {
-            console.log(`❌ DM SKIPPED: DISCORD_GUILD_ID is missing in Render Environment Variables!`);
+            console.log(`❌ DM SKIPPED: DISCORD_GUILD_ID is missing.`);
+            targetUserId = null;
           } else {
             console.log(`🔍 Resolving username "${targetUserId}" to User ID...`);
-            // Remove the @ symbol if they typed it
             const cleanUsername = targetUserId.replace('@', '');
             const searchUrl = `https://discord.com/api/v10/guilds/${guildId}/members/search?query=${encodeURIComponent(cleanUsername)}&limit=1`;
             
@@ -196,13 +197,12 @@ app.get('/api/admin', async (req, res) => {
                 targetUserId = null;
               }
             } else {
-              console.log(`❌ Error searching for user. Check if "Server Members Intent" is enabled.`);
+              console.log(`❌ Error searching for user.`);
               targetUserId = null;
             }
           }
         }
 
-        // Send the DM if we have a valid User ID
         if (targetUserId) {
           console.log(`📡 Attempting to send DM to User ID: ${targetUserId}...`);
           try {
@@ -238,17 +238,13 @@ app.get('/api/admin', async (req, res) => {
               if (msgReq.ok) {
                   console.log(`✅ Discord DM successfully sent to ${applicant.ign}!`);
               } else {
-                  console.log(`❌ Failed to send DM message. Error:`, await msgReq.text());
+                  console.log(`❌ Failed to send DM message.`);
               }
-            } else {
-              console.log(`❌ Could not open DM channel. Error:`, await dmChannelReq.text());
             }
           } catch (dmError) {
             console.error("❌ Error sending Discord DM:", dmError);
           }
         }
-      } else {
-        console.log(`❌ DM SKIPPED: Missing applicant discord info or bot token.`);
       }
       
       console.log(`--- 🏁 FINISHED UPDATE ACTION ---\n`);

@@ -6,7 +6,7 @@
   <title>Apply Now | Ros Reborn Creator Program</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="apply-page">
@@ -57,8 +57,6 @@
             </div>
 
             <form id="apply-form" action="/apply" method="POST">
-              <input type="hidden" name="_token" value="REPLACE_WITH_CSRF_TOKEN">
-
               <div class="form-grid">
                 <!-- 01 -->
                 <div class="field">
@@ -68,13 +66,20 @@
 
                 <!-- 02 -->
                 <div class="field">
-                  <label for="discord">02 / Discord username <span class="req">*</span></label>
-                  <input id="discord" name="discord" type="text" autocomplete="off" placeholder="username" required>
+                  <label for="legal_name">02 / Legal Full Name <span class="req">*</span></label>
+                  <input id="legal_name" name="legal_name" type="text" autocomplete="off" placeholder="e.g. Juan Dela Cruz" required>
                 </div>
 
                 <!-- 03 -->
                 <div class="field">
-                  <label for="platform">03 / Content platform <span class="req">*</span></label>
+                  <label for="discord">03 / Discord Username <span class="req">*</span></label>
+                  <input id="discord" name="discord" type="text" autocomplete="off" placeholder="e.g. holym" required>
+                  <p class="hint" style="font-size: 12px; color: var(--navy-muted); margin-top: 4px;">Make sure you joined the Ros Reborn Discord server!</p>
+                </div>
+
+                <!-- 04 -->
+                <div class="field">
+                  <label for="platform">04 / Content platform <span class="req">*</span></label>
                   <select id="platform" name="platform" required>
                     <option value="">Select a platform</option>
                     <option value="youtube">YouTube</option>
@@ -89,47 +94,57 @@
                   <input id="platform-other" name="platform_other" type="text" placeholder="e.g. Twitch, Kick, Instagram">
                 </div>
 
-                <!-- 04 -->
+                <!-- 05 -->
                 <div class="field">
-                  <label for="channel">04 / Channel URL <span class="req">*</span></label>
+                  <label for="channel">05 / Channel URL <span class="req">*</span></label>
                   <input id="channel" name="channel" type="url" placeholder="https://" required>
                   <p class="hint">Link to your channel or profile.</p>
                 </div>
 
-                <!-- 05 -->
-                <div class="field">
-                  <label for="email">05 / Gmail Address <span class="req">*</span></label>
-                  <input id="email" name="email" type="email" autocomplete="off" placeholder="your.email@gmail.com" required>
-                </div>
-
                 <!-- 06 -->
                 <div class="field">
-                  <label for="followers">06 / Follower count <span class="req">*</span></label>
-                  <input id="followers" name="followers" type="number" min="10000" inputmode="numeric" placeholder="10000" required>
-                  <p class="hint">Minimum 10,000 followers.</p>
+                  <label for="email">06 / Gmail Address <span class="req">*</span></label>
+                  <input id="email" name="email" type="email" autocomplete="off" placeholder="your.email@gmail.com" required>
                 </div>
 
                 <!-- 07 -->
                 <div class="field">
-                  <label for="views">07 / Average video views <span class="opt">(optional)</span></label>
-                  <input id="views" name="views" type="number" min="0" inputmode="numeric" placeholder="e.g. 2500">
+                  <label for="followers">07 / Follower count <span class="req">*</span></label>
+                  <input id="followers" name="followers" type="number" min="10000" inputmode="numeric" placeholder="10000" required>
+                  <p class="hint">Minimum 10,000 followers.</p>
                 </div>
 
                 <!-- 08 -->
                 <div class="field">
-                  <label for="best-content">08 / Best Ros Reborn content link <span class="opt">(optional)</span></label>
-                  <input id="best-content" name="best_content" type="url" placeholder="https://">
+                  <label for="views">08 / Average video views <span class="opt">(optional)</span></label>
+                  <input id="views" name="views" type="number" min="0" inputmode="numeric" placeholder="e.g. 2500">
                 </div>
 
                 <!-- 09 -->
-                <div class="field field-full">
-                  <label for="additional-notes">09 / Additional Notes <span class="opt">(optional)</span></label>
-                  <textarea id="additional-notes" name="additional_notes" rows="3" placeholder="Anything else we should know about your channel?"></textarea>
+                <div class="field">
+                  <label for="best-content">09 / Best Ros Reborn content link <span class="opt">(optional)</span></label>
+                  <input id="best-content" name="best_content" type="url" placeholder="https://">
                 </div>
 
                 <!-- 10 -->
+                <div class="field">
+                  <label for="edition">10 / Program Edition <span class="req">*</span></label>
+                  <select id="edition" name="edition" required>
+                    <option value="">Select Edition</option>
+                    <option value="content_creator">Content Creator Edition</option>
+                    <option value="streamer">Streamer Edition</option>
+                  </select>
+                </div>
+
+                <!-- 11 -->
                 <div class="field field-full">
-                  <label for="proof">10 / Proof of ownership <span class="opt">(optional)</span></label>
+                  <label for="additional-notes">11 / Additional Notes <span class="opt">(optional)</span></label>
+                  <textarea id="additional-notes" name="additional_notes" rows="3" placeholder="Anything else we should know about your channel?"></textarea>
+                </div>
+
+                <!-- 12 -->
+                <div class="field field-full">
+                  <label for="proof">12 / Proof of ownership <span class="opt">(optional)</span></label>
                   <input type="file" id="proof" name="proof" accept="image/*,.pdf">
                   <p class="hint">Upload a screenshot or PDF proving you own the channel (Max 3MB).</p>
                 </div>
@@ -138,7 +153,7 @@
               <div class="agree-row">
                 <input type="checkbox" id="agree" name="agree" required>
                 <div>
-                  <label for="agree">I agree to follow the Ros Reborn community guidelines and creator program requirements. <span class="req">*</span></label>
+                  <label for="agree">I have read and agree to the <a href="assets/RisingStarsAgreement.pdf" target="_blank" style="color: var(--accent-pink); text-decoration: underline;">Rising Stars Program Agreement</a>. <span class="req">*</span></label>
                 </div>
               </div>
 
