@@ -9,24 +9,24 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // ==========================================
-// 1. STAFF DATABASE (Esports Call Signs)
+// 1. STAFF DATABASE (Esports Call Signs & Roles)
 // ==========================================
 const STAFF_DATABASE = {
-  "Vortex": "Xaii",
-  "Aegis": "Odh",
-  "Nova": "Molly (Dir)",
-  "Titan": "Seyp",
-  "Phantom": "Molly (Dev)",
-  "Blaze": "Azulaè",
-  "Cipher": "Honeypot",
-  "Zenith": "JIN",
-  "Eclipse": "0 Day's",
-  "Vanguard": "Eli",
-  "Spectral": "Ame",
-  "Onyx": "Hxnzu",
-  "Rogue": "Xav",
-  "Falcon": "azr",
-  "Aurora": "Madam Nikki"
+  "Vortex": { name: "Xaii", role: "Executive Director" },
+  "Aegis": { name: "Odh", role: "Community Director" },
+  "Nova": { name: "Molly (Dir)", role: "Community Director" },
+  "Titan": { name: "Seyp", role: "Lead Staff | Game Master" },
+  "Phantom": { name: "Molly (Dev)", role: "Discord Developer" },
+  "Blaze": { name: "Azulaè", role: "Senior Administrator" },
+  "Cipher": { name: "Honeypot", role: "Senior Administrator" },
+  "Zenith": { name: "JIN", role: "Senior Moderator" },
+  "Eclipse": { name: "0 Day's", role: "Senior Moderator" },
+  "Vanguard": { name: "Eli", role: "Moderator" },
+  "Spectral": { name: "Ame", role: "Moderator" },
+  "Onyx": { name: "Hxnzu", role: "Moderator" },
+  "Rogue": { name: "Xav", role: "Moderator" },
+  "Falcon": { name: "azr", role: "Moderator" },
+  "Aurora": { name: "Madam Nikki", role: "Staff" }
 };
 
 // ==========================================
@@ -293,24 +293,24 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// 🌟 FIXED LOGIN LOGIC - IGNORES CASE 🌟
+// 🌟 UPDATED LOGIN ROUTE 🌟
 app.post('/api/login', (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ success: false, message: "Code is required." });
 
   // Convert input to lowercase to match keys regardless of case
   const inputCode = code.trim().toLowerCase();
-  let staffName = null;
+  let staffData = null;
 
-  for (const [key, name] of Object.entries(STAFF_DATABASE)) {
+  for (const [key, data] of Object.entries(STAFF_DATABASE)) {
     if (key.toLowerCase() === inputCode) {
-      staffName = name;
+      staffData = data;
       break;
     }
   }
 
-  if (staffName) {
-    res.status(200).json({ success: true, staffName: staffName });
+  if (staffData) {
+    res.status(200).json({ success: true, staffName: staffData.name, staffRole: staffData.role });
   } else {
     res.status(401).json({ success: false, message: "Invalid staff code." });
   }
