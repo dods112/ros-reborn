@@ -1,6 +1,3 @@
-/* =========================================
-   1. VARIABLES & RESET
-   ========================================= */
 :root {
   --navy: #211b78;
   --navy-muted: #55558c;
@@ -60,9 +57,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .skip-link:focus { left: 8px; }
 
-/* =========================================
-   2. TYPOGRAPHY & LABELS
-   ========================================= */
 .label {
   font-family: var(--font-head);
   font-size: 18px; letter-spacing: 2px; color: var(--navy);
@@ -89,9 +83,6 @@ img { max-width: 100%; height: auto; display: block; }
   -webkit-background-clip: text; background-clip: text;
 }
 
-/* =========================================
-   3. BUTTONS
-   ========================================= */
 .btn {
   position: relative; overflow: hidden;
   display: inline-flex; align-items: center; justify-content: center;
@@ -141,9 +132,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   outline: 3px solid var(--accent-cyan); outline-offset: 3px;
 }
 
-/* =========================================
-   4. NAVIGATION
-   ========================================= */
 .site-header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 50;
   background: rgba(250, 246, 252, .78); backdrop-filter: blur(16px);
@@ -182,9 +170,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .nav-download { min-height: 40px; padding: 0 24px; font-size: 16px; }
 .nav-toggle { display: none; }
 
-/* =========================================
-   5. HERO (Home Page)
-   ========================================= */
 .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; padding-top: 80px; padding-bottom: 40px; }
 .hero-flare { position: absolute; top: 18%; right: 0; width: 52.1%; height: 90%; background: url('assets/images/flare-teal.png') center right / contain no-repeat; transform: translateY(-50%); z-index: 1; pointer-events: none; mix-blend-mode: multiply; opacity: .6; animation: pulseFlare 8s ease-in-out infinite alternate; }
 @keyframes pulseFlare { 0% { opacity: .4; transform: translateY(-50%) scale(1); } 100% { opacity: .7; transform: translateY(-50%) scale(1.05); } }
@@ -204,9 +189,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: -130px; margin-left: -15%; animation: fadeUp .8s ease-out .4s both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-/* =========================================
-   6. SECTIONS & BENEFITS (Home Page)
-   ========================================= */
 .section { padding: clamp(70px, 8vw, 108px) 0; position: relative; }
 .benefit-grid { display: grid; grid-template-columns: 1fr; gap: 18px; max-width: 900px; margin: 0; }
 .benefit { position: relative; display: flex; align-items: center; height: 96px; min-height: 96px; border: 1px solid rgba(33, 27, 120, .10); background: rgba(255, 255, 255, .96); clip-path: polygon(0 0, 100% 0, calc(100% - 35px) 100%, 0 100%); box-shadow: 0 8px 22px rgba(33, 27, 120, .08); transition: transform .3s ease, box-shadow .3s ease; }
@@ -218,9 +200,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .benefit-slash { width: 14px; height: 100%; flex: 0 0 14px; margin-right: 36px; background: var(--navy); transform: skewX(-15deg); transition: background .3s ease, box-shadow .3s ease; }
 .benefit:hover .benefit-slash { background: var(--accent-pink); box-shadow: 0 0 15px rgba(244, 92, 174, .6); }
 
-/* =========================================
-   7. REQUIREMENTS & STEPS (Home Page)
-   ========================================= */
 .eligibility { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(40px, 6vw, 80px); align-items: start; }
 .eligibility-text { position: sticky; top: 120px; }
 .req-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
@@ -244,9 +223,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .step-connector { display: flex; align-items: center; justify-content: center; }
 .connector-line { width: 100%; height: 2px; border-top: 2px dashed var(--accent-pink); opacity: .5; }
 
-/* =========================================
-   8. HOME PAGE APPLICATION FORM
-   ========================================= */
 .form-header-wrap { margin-bottom: 40px; }
 .form-wrapper-center { max-width: 900px; margin: 0 auto; }
 .apply-panel { position: relative; background: rgba(255, 255, 255, .98); padding: clamp(32px, 5vw, 56px); border: 1px solid rgba(33, 27, 120, .12); border-radius: 12px; box-shadow: 0 24px 60px rgba(33, 27, 120, .15); overflow: hidden; }
@@ -287,9 +263,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 @keyframes spin { to { transform: rotate(360deg); } }
 .form-status { font-size: 15px; color: var(--navy-muted); margin: 20px 0 0; min-height: 20px; text-align: center; font-weight: 600; }
 
-/* =========================================
-   9. FAQ ACCORDION
-   ========================================= */
 .faq-wrap { max-width: none; width: 100%; margin: 0; }
 .faq { display: grid; gap: 14px; margin-top: 8px; width: 100%; }
 .faq details { position: relative; background: #fff; box-shadow: 0 8px 22px rgba(33, 27, 120, .08); clip-path: polygon(0 0, calc(100% - 50px) 0, 100% 100%, 0 100%); transition: transform .25s ease, box-shadow .25s ease; }
@@ -324,9 +297,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .faq details p { position: relative; z-index: 1; margin: 0; padding: 0 110px 24px 134px; color: var(--navy-muted); font-size: 16px; line-height: 1.55; }
 .faq details p em.confirm { color: var(--accent-pink); font-style: normal; font-weight: 600; }
 
-/* =========================================
-   10. CTA & FOOTER
-   ========================================= */
 .cta { position: relative; padding: clamp(80px, 12vw, 140px) 0; overflow: hidden; text-align: center; background: radial-gradient(ellipse at 12% 50%, rgba(0, 217, 233, .15), transparent 35%), radial-gradient(ellipse at 88% 50%, rgba(244, 92, 174, .15), transparent 38%), rgba(255, 255, 255, .6); border-top: 1px solid rgba(33, 27, 120, .1); }
 .cta-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .cta h2 { font-family: var(--font-head); font-size: clamp(40px, 6vw, 72px); font-weight: 800; line-height: 1.1; letter-spacing: 1px; margin: 0 0 24px; text-transform: uppercase; color: var(--navy); }
@@ -341,9 +311,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .footer-links a:hover { color: var(--accent-pink); }
 .copyright { margin: 0; font-size: 13px; color: var(--navy-muted); opacity: .8; }
 
-/* =========================================
-   11. REVEAL ANIMATIONS & A11Y
-   ========================================= */
 .reveal { 
   opacity: 0; 
   transform: translateY(40px) scale(0.95); 
@@ -356,9 +323,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .reveal.delay-4 { transition-delay: .4s; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .reveal { opacity: 1; transform: none; } }
 
-/* =========================================
-   12. APPLY PAGE (Premium Design)
-   ========================================= */
 .apply-page {
   --ap-border: #dcdcec;
   --ap-border-hover: #b8bbd8;
@@ -371,7 +335,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page::before { content: ""; position: absolute; top: 5%; left: -10%; width: 60%; height: 40%; background: linear-gradient(135deg, rgba(0, 217, 233, 0.35), transparent 70%); transform: skewY(-15deg); z-index: 0; pointer-events: none; }
 .apply-page::after { content: ""; position: absolute; bottom: 5%; right: -10%; width: 60%; height: 40%; background: linear-gradient(135deg, transparent 30%, rgba(244, 92, 174, 0.35)); transform: skewY(-15deg); z-index: 0; pointer-events: none; }
 
-/* Apply Page Nav Button */
 .apply-page .nav-links a.btn-home {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 44px; padding: 0 28px; 
@@ -392,7 +355,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 }
 .apply-page .nav-links a.btn-home svg { width: 18px; height: 18px; stroke: currentColor; }
 
-/* Apply Layout */
 .apply-page .apply-section { padding: 100px 20px 20px; position: relative; z-index: 1; }
 .apply-page .apply-layout { display: block; width: 100%; max-width: 960px; margin: 0 auto; }
 .apply-page .apply-main { width: 100%; }
@@ -413,13 +375,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   overflow: hidden;
 }
 
-/* Apply Art (Left Panel) */
 .apply-page .apply-art { position: relative; align-self: stretch; overflow: hidden; background: linear-gradient(170deg, #eaf9fd 0%, #f5eef9 55%, #fde4f0 100%); }
 .apply-page .apply-art::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent 0 40px, rgba(0, 217, 233, 0.15) 40px 60px); }
 .apply-page .apply-art::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, transparent 0 90px, rgba(244, 92, 174, 0.15) 90px 110px); }
 .apply-page .apply-art img { position: absolute; left: 50%; bottom: -2%; transform: translateX(-50%); height: 104%; width: auto; max-width: none; object-fit: contain; z-index: 1; filter: drop-shadow(0 18px 28px rgba(33, 27, 120, 0.3)); }
 
-/* Apply Body (Right Panel) */
 .apply-page .apply-body { padding: 24px 32px; min-width: 0; }
 .apply-page .apply-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(33, 27, 120, 0.1); }
 .apply-page .apply-kicker { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-pink); margin: 0 0 8px; }
@@ -427,7 +387,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .apply-ref { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-size: 12px; font-weight: 700; color: var(--navy); background: #f8f9fc; border: 1px solid #e0e2f0; border-radius: 20px; padding: 8px 14px; margin: 0; white-space: nowrap; }
 .apply-page .apply-ref svg { width: 14px; height: 14px; color: var(--accent-pink); }
 
-/* Grid and Field Ordering */
 .apply-page .form-grid { 
   display: grid; 
   grid-template-columns: 1fr 1fr; 
@@ -443,7 +402,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .req { color: var(--accent-pink); }
 .apply-page .opt { font-weight: 400; font-size: 13px; color: var(--navy-muted); }
 
-/* Form Inputs */
 .apply-page .field input, .apply-page .field select, .apply-page .field textarea {
   width: 100%; height: 42px; padding: 0 16px; background: #fff; color: var(--navy);
   font-family: var(--font-body); font-size: 14px; border: 1.5px solid var(--ap-border);
@@ -454,7 +412,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .field input::placeholder, .apply-page .field textarea::placeholder { color: #9a9cb8; }
 .apply-page .field input:hover, .apply-page .field select:hover, .apply-page .field textarea:hover { border-color: var(--ap-border-hover); }
 
-/* Input Focus Pop */
 .apply-page .field input:focus, .apply-page .field select:focus, .apply-page .field textarea:focus { 
   border-color: var(--accent-pink); 
   box-shadow: 0 0 0 4px rgba(244, 92, 174, .16); 
@@ -467,7 +424,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .field-error { font-size: 13px; font-weight: 600; color: var(--ap-error); margin: 6px 0 0; }
 .apply-page .field-error:empty { display: none; }
 
-/* Input Icons */
 .apply-page #ign, .apply-page #discord, .apply-page #channel, .apply-page #email,
 .apply-page #followers, .apply-page #views, .apply-page #best-content {
   padding-left: 48px !important; background-repeat: no-repeat !important;
@@ -491,7 +447,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   appearance: none;
 }
 
-/* Agreement Checkbox */
 .apply-page .agree-row { display: flex; align-items: flex-start; gap: 14px; margin-top: 14px; padding: 10px 16px; background: #f8f9fc; border: 1px solid var(--ap-border); border-radius: var(--ap-radius); }
 .apply-page .agree-row label { font-size: 15px; line-height: 1.5; font-weight: 600; margin: 0; cursor: pointer; }
 .apply-page .agree-row .field-error { margin-top: 8px; }
@@ -501,7 +456,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .agree-row input[type="checkbox"]:checked::after { content: ""; position: absolute; left: 6px; top: 1px; width: 5px; height: 11px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
 .apply-page .agree-row input[type="checkbox"]:focus-visible { outline: 3px solid var(--accent-cyan); outline-offset: 2px; }
 
-/* Submit Button */
 .apply-page .apply-submit { width: 100%; height: 46px; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(90deg, #1c1666 0%, #7b2cbf 50%, #f45cae 100%); background-size: 200% auto; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-family: var(--font-head); font-size: 17px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(244, 92, 174, 0.4); transition: all .3s ease; }
 .apply-page .apply-submit:hover:not([disabled]) { background-position: right center; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(244, 92, 174, 0.6); }
 .apply-page .apply-submit:focus-visible { outline: 3px solid var(--accent-cyan); outline-offset: 3px; }
@@ -512,15 +466,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 .apply-page .apply-submit.is-loading::after { display: none; }
 @keyframes apply-spin { to { transform: rotate(360deg); } }
 
-/* Status Messages */
 .apply-page .form-status { display: none; margin: 18px 0 0; padding: 14px 16px; border-radius: var(--ap-radius); font-size: 15px; line-height: 1.5; }
 .apply-page .form-status.is-error { display: block; background: #fff0f3; color: #8f1538; border: 1px solid #f4b8c8; }
 .apply-page .form-status.is-success { display: block; background: #edfbf4; color: #0d6b47; border: 1px solid #b4e9cf; }
 .apply-page .form-status.is-info { display: block; background: #f1f2fb; color: var(--navy); border: 1px solid #d6d8ef; }
-
-/* =========================================
-   13. SINGLE CLEAN RESPONSIVE SECTION
-   ========================================= */
 
 @media (max-width: 1100px) {
   .benefit-grid { max-width: 680px; }
@@ -531,7 +480,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
 }
 
 @media (max-width: 900px) {
-  /* --- PERFECT MOBILE NAVIGATION SPACING --- */
   .nav {
     flex-wrap: wrap !important;
     align-items: center !important;
@@ -607,7 +555,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
     border-bottom: 1px solid var(--accent-pink); 
   }
 
-  /* --- APPLY PAGE NAV OVERRIDES --- */
   .apply-page .nav { height: 70px !important; padding: 0 16px !important; flex-wrap: nowrap !important; }
   .apply-page .nav-toggle { display: none !important; } 
   .apply-page .nav-links {
@@ -625,7 +572,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   }
   .apply-page .nav-links a.btn-home svg { width: 14px !important; height: 14px !important; }
 
-  /* --- HERO (Character Top, Text Bottom) --- */
   .hero { display: flex !important; flex-direction: column !important; padding-top: 90px !important; padding-bottom: 40px !important; min-height: auto !important; }
   .hero-char-wrapper { position: relative !important; order: 1 !important; width: 100% !important; height: 40vh !important; min-height: 250px !important; display: flex !important; justify-content: center !important; margin-top: 0 !important; margin-bottom: -10px !important; padding-right: 0 !important; z-index: 2 !important; }
   .hero-inner { display: flex !important; flex-direction: column !important; width: 100% !important; order: 2 !important; align-items: center !important; margin: 0 !important; gap: 20px !important; }
@@ -636,7 +582,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   .hero-actions .btn { width: 100% !important; max-width: 320px !important; }
   .hero-char { height: 100% !important; width: auto !important; object-fit: contain !important; object-position: bottom center !important; }
 
-  /* --- SECTIONS --- */
   .steps-container { grid-template-columns: 1fr; gap: 16px; } 
   .step-connector { display: none; } 
   .step-card { padding: 32px 24px; } 
@@ -644,7 +589,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   .apply-head { flex-direction: column; } 
   .apply-ref { align-self: flex-start; }
 
-  /* --- APPLY PAGE Layout --- */
   .apply-page .apply-section { padding: 90px 16px 40px !important; }
   .apply-page .apply-card { display: flex !important; flex-direction: column !important; width: 100% !important; max-width: 100% !important; overflow: hidden !important; border-radius: 16px !important; background: #fff !important; }
   .apply-page .apply-art { display: none !important; }
@@ -663,7 +607,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   .section { padding: 60px 0; } 
   .section-title { margin-bottom: 24px; }
   
-  /* Requirements Mobile Fix */
   .req-card { height: auto !important; min-height: 80px !important; clip-path: none !important; border-radius: 8px !important; overflow: hidden !important; }
   .req-icon-bg { flex: 0 0 70px !important; width: 70px !important; clip-path: none !important; }
   .req-number { font-size: 24px !important; transform: none !important; }
@@ -672,13 +615,11 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   .req-text p { font-size: 14px !important; line-height: 1.4 !important; }
   .req-slash { display: none !important; }
 
-  /* FAQ Mobile Fix */
   .faq details::before { width: 70px !important; } 
   .faq details summary { min-height: 60px !important; padding: 0 50px 0 85px !important; font-size: 15px !important; } 
   .faq details summary::after { right: 30px !important; width: 8px !important; } 
   .faq details p { padding: 0 40px 18px 85px !important; font-size: 14px !important; }
   
-  /* Perfectly Centered Plus/Minus Icon (Mobile) */
   .faq-icon { 
     left: 10px !important; 
     width: 14px !important; 
@@ -693,9 +634,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus
   .apply-page *, .apply-page *::before, .apply-page *::after { transition: none !important; animation: none !important; }
 }
 
-/* =========================================
-   14. FILE INPUT STYLING
-   ========================================= */
 .apply-page input[type="file"] {
   padding: 10px 16px;
   height: auto;

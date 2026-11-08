@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Force HTML5 Validation (Required fields, valid email format, etc.)
       if (!form.reportValidity()) return;
 
       submitBtn.disabled = true;
@@ -29,11 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
 
-      // ==========================================
-      // DEBUGGING: INSPECT FRONTEND DATA
-      // ==========================================
       console.log("SUBMITTED FORM DATA:", data);
-      // ==========================================
 
       const file = fileInput.files[0];
       if (file) {

@@ -1,4 +1,3 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,9 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ==========================================
-// 1. STAFF DATABASE (Esports Call Signs & Roles)
-// ==========================================
 const STAFF_DATABASE = {
   "Vortex": { name: "Xaii", role: "Executive Director" },
   "Aegis": { name: "Odh", role: "Community Director" },
@@ -29,9 +25,6 @@ const STAFF_DATABASE = {
   "Aurora": { name: "Madam Nikki", role: "Staff" }
 };
 
-// ==========================================
-// 2. DATABASE SETUP
-// ==========================================
 let db;
 try {
   db = createClient({
@@ -43,12 +36,8 @@ try {
   console.error("Failed to initialize database:", error);
 }
 
-// ==========================================
-// 3. API ROUTES
-// ==========================================
 app.get('/', (req, res) => res.status(200).send("Ros Reborn Backend is running perfectly."));
 
-// --- APPLY ENDPOINT ---
 app.post('/api/apply', async (req, res) => {
   const data = req.body;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -123,7 +112,6 @@ app.post('/api/apply', async (req, res) => {
   }
 });
 
-// --- ADMIN DASHBOARD ENDPOINT ---
 app.get('/api/admin', async (req, res) => {
   const { action, refId, status, note, staffName } = req.query;
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
@@ -293,12 +281,10 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-// 🌟 UPDATED LOGIN ROUTE 🌟
 app.post('/api/login', (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ success: false, message: "Code is required." });
 
-  // Convert input to lowercase to match keys regardless of case
   const inputCode = code.trim().toLowerCase();
   let staffData = null;
 

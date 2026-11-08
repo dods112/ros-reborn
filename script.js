@@ -1,9 +1,6 @@
 (function () {
   'use strict';
 
-  /* =========================================
-     1. Mobile Navigation Toggle
-     ========================================= */
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('site-nav');
 
@@ -13,7 +10,6 @@
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
 
-    // Close menu when a link is clicked
     nav.querySelectorAll('a').forEach(function(link) {
       link.addEventListener('click', function() {
         nav.classList.remove('open');
@@ -22,9 +18,6 @@
     });
   }
 
-  /* =========================================
-     2. Scroll Reveal Animations
-     ========================================= */
   var revealItems = document.querySelectorAll('.reveal');
 
   if ('IntersectionObserver' in window) {
@@ -39,13 +32,9 @@
     
     revealItems.forEach(function (el) { observer.observe(el); });
   } else {
-    // Fallback for older browsers
     revealItems.forEach(function (el) { el.classList.add('is-visible'); });
   }
 
-  /* =========================================
-     3. Scroll Spy (Active Nav Link Highlighting)
-     ========================================= */
   var sections = document.querySelectorAll('section[id]');
   var navLinks = document.querySelectorAll('.nav-links a');
 
@@ -55,7 +44,6 @@
       var currentSection = '';
 
       sections.forEach(function (section) {
-        // Get the section's top position, minus the height of the fixed header
         var sectionTop = section.offsetTop - 120; 
         var sectionHeight = section.offsetHeight;
 
@@ -66,7 +54,6 @@
 
       navLinks.forEach(function (link) {
         link.classList.remove('nav-active');
-        // If the href matches the current section, add the active class
         if (link.getAttribute('href') === '#' + currentSection) {
           link.classList.add('nav-active');
         }
@@ -74,9 +61,6 @@
     });
   }
 
-  /* =========================================
-     4. Application Form Validation
-     ========================================= */
   var form = document.getElementById('apply-form');
   if (!form) return;
 
@@ -156,7 +140,6 @@
     return message === '';
   }
 
-  // Handle the "Other" platform dropdown logic
   var platformSelect = document.getElementById('platform');
   var otherWrap = document.getElementById('other-wrap');
   if (platformSelect && otherWrap) {
@@ -169,7 +152,6 @@
     });
   }
 
-  // Attach validation listeners to all inputs
   form.querySelectorAll('input, select').forEach(function (el) {
     el.addEventListener('blur', function () { validateField(el); });
     el.addEventListener('input', function () {
@@ -178,7 +160,6 @@
     el.addEventListener('change', function () { validateField(el); });
   });
 
-  // Handle form submission
   form.addEventListener('submit', function (event) {
     var firstInvalid = null;
     var allValid = true;
@@ -197,7 +178,6 @@
       return;
     }
 
-    // Show loading state if valid
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.classList.add('is-loading');
@@ -207,9 +187,6 @@
   });
 })();
 
-/* =========================================
-   FAQ accordion: smooth open/close, ARIA, keyboard-safe
-   ========================================= */
 (function () {
   'use strict';
 
@@ -225,7 +202,6 @@
     var answer = d.querySelector('p');
     if (!summary || !answer) return;
 
-    // Wrap the answer in a panel so its height can animate
     var panel = document.createElement('div');
     panel.className = 'faq-panel';
     panel.id = 'faq-answer-' + (i + 1);
@@ -283,8 +259,6 @@
     }
 
     summary.addEventListener('click', function (event) {
-      // Stop the browser's instant toggle so the animation can run.
-      // Enter and Space still trigger this click on <summary>.
       event.preventDefault();
       if (closing || !d.open) {
         open();
