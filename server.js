@@ -99,7 +99,6 @@ app.post('/api/apply', async (req, res) => {
       await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(discordPayload) });
     }
 
-    // UPDATED INSERT QUERY
     await db.execute({
       sql: `INSERT INTO applications (ref_id, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content, additional_notes, proof_file, proof_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [refId, data.legal_name, data.edition, data.ign, data.discord, data.email, data.platform, data.channel, Number(data.followers), data.views ? Number(data.views) : null, data.best_content || null, data.additional_notes || null, data.proof_name || null, attachmentUrl || null]
@@ -155,8 +154,8 @@ app.get('/api/admin', async (req, res) => {
           receiptFields.push({ name: "Staff Note", value: `>>> ${applicant.staff_notes}`, inline: false });
         }
 
+        // 🌟 FIXED: Removed the "content" line to fix the mobile Discord bug 🌟
         const receiptPayload = {
-          content: `**STAFF RECEIPT**`,
           embeds: [{
             title: `Application ${status}`,
             description: `This is a system receipt confirming a staff action.`,
