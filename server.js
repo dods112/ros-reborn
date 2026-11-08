@@ -293,9 +293,21 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
+// 🌟 FIXED LOGIN LOGIC - IGNORES CASE 🌟
 app.post('/api/login', (req, res) => {
   const { code } = req.body;
-  const staffName = STAFF_DATABASE[code];
+  if (!code) return res.status(400).json({ success: false, message: "Code is required." });
+
+  // Convert input to lowercase to match keys regardless of case
+  const inputCode = code.trim().toLowerCase();
+  let staffName = null;
+
+  for (const [key, name] of Object.entries(STAFF_DATABASE)) {
+    if (key.toLowerCase() === inputCode) {
+      staffName = name;
+      break;
+    }
+  }
 
   if (staffName) {
     res.status(200).json({ success: true, staffName: staffName });
