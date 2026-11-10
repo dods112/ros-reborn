@@ -124,29 +124,27 @@ app.get('/api/admin', async (req, res) => {
     if (action === 'getAll') {
       console.log("⏳ FETCHING APPLICATIONS FROM TURSO...");
       
-      // HELPER FUNCTION FOR RETRYING
-      const fetchData = async () => {
-        return await db.execute(`
+      try {
+        // 1. Create a manual timeout that rejects after 8 seconds
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Database query timed out (8s)")), 8000)
+        );
+
+        // 2. The actual database query
+        const dbPromise = db.execute(`
           SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
           FROM applications ORDER BY id DESC
         `);
-      };
 
-      let result;
-      try {
-        result = await fetchData();
-      } catch (err) {
-        if (err.code === 'ECONNRESET' || err.message.includes('socket hang up')) {
-          console.log("⚠️ Socket hung up. Retrying database connection...");
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-          result = await fetchData(); // Try one more time
-        } else {
-          throw err;
-        }
+        // 3. Race them! Whichever finishes first (the data or the timeout) wins.
+        const result = await Promise.race([dbPromise, timeoutPromise]);
+        
+        console.log(`✅ SUCCESSFULLY FETCHED ${result.rows.length} ROWS!`);
+        return res.status(200).json({ status: 'success', data: result.rows });
+      } catch (dbError) {
+        console.error("❌ TURSO DB ERROR:", dbError.message);
+        return res.status(500).json({ status: 'error', message: dbError.message });
       }
-      
-      console.log(`✅ SUCCESSFULLY FETCHED ${result.rows.length} ROWS!`);
-      return res.status(200).json({ status: 'success', data: result.rows });
     }
 
     if (action === 'update') {
