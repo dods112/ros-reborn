@@ -34,7 +34,6 @@ try {
   });
   console.log("Database connection initialized.");
   
-  // 🚨 STARTUP PING TO TEST CONNECTION 🚨
   db.execute("SELECT 1")
     .then(() => console.log("✅ TURSO PING SUCCESSFUL! The database is reachable."))
     .catch((err) => console.error("❌ TURSO PING FAILED:", err.message));
@@ -130,8 +129,9 @@ app.get('/api/admin', async (req, res) => {
       console.log("⏳ FETCHING APPLICATIONS FROM TURSO...");
       
       try {
+        // CHANGED TO 20 SECONDS
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Database query timed out (8s)")), 8000)
+          setTimeout(() => reject(new Error("Database query timed out (20s)")), 20000)
         );
 
         const dbPromise = db.execute(`
