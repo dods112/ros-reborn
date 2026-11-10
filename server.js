@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@libsql/client');
 
+console.log("🚀 STARTING SERVER: V3 - WITH DELETE FUNCTION");
+
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -309,6 +311,21 @@ app.get('/api/admin', async (req, res) => {
         args: [note, refId]
       });
       return res.status(200).json({ status: 'success' });
+    }
+
+    if (action === 'delete') {
+      console.log(`\n--- 🗑️ DELETING APPLICATION ${refId} ---`);
+      try {
+        await db.execute({
+          sql: "DELETE FROM applications WHERE ref_id = ?",
+          args: [refId]
+        });
+        console.log(`✅ Application ${refId} deleted successfully.`);
+        return res.status(200).json({ status: 'success' });
+      } catch (err) {
+        console.error("❌ Delete Error:", err.message);
+        return res.status(500).json({ status: 'error', message: err.message });
+      }
     }
 
     res.status(400).json({ message: "Invalid action" });

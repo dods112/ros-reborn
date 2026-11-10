@@ -798,23 +798,21 @@
     </div>
   </div>
 
-  <script>
+    <script>
     const API_BASE = "https://ros-reborn.onrender.com/api";
     let globalApps = [];
     let filteredApps = [];
     let currentReviewId = null;
 
-    // REDIRECT ON RIGHT CLICK
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault(); 
-      window.location.href = "https://www.pornhub.com"; // CHANGE THIS LINK
+      window.location.href = "https://www.youtube.com";
     });
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.key === 's')) e.preventDefault();
     });
 
-    // LOGIN LOGIC
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const code = document.getElementById('staff-code').value;
@@ -839,7 +837,6 @@
           sessionStorage.setItem('staffRole', result.staffRole);
           
           document.getElementById('display-staff-name').textContent = result.staffName;
-          // 🌟 DISPLAY DYNAMIC ROLE 🌟
           document.getElementById('display-staff-role').textContent = result.staffRole || 'Staff';
           
           document.getElementById('login-screen').style.display = 'none';
@@ -891,41 +888,23 @@
 
     async function fetchApplications() {
       const refreshBtn = document.getElementById('refresh-btn');
-      refreshBtn.innerHTML = 'Loading...';
+      refreshBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Loading...';
       
       const tbodyIds = ['recent-apps-tbody', 'all-apps-tbody', 'approved-apps-tbody', 'declined-apps-tbody'];
       tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color:var(--text-muted);">Fetching data...</td></tr>'; });
       
-      // Create a timeout controller (15 seconds)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
       try {
-        const response = await fetch(`${API_BASE}/admin?action=getAll`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`Server Status: ${response.status}`);
-        }
-
+        const response = await fetch(`${API_BASE}/admin?action=getAll`);
         const result = await response.json();
         if (result.status === "success") {
           globalApps = result.data;
           renderDashboardStats();
           applyFilters();
-        } else {
-          throw new Error(result.message || "Unknown API error");
         }
       } catch (err) {
-        console.error("Fetch Error:", err);
-        
-        // If it timed out, this shows on screen
-        let errorMsg = err.name === 'AbortError' ? 'Request Timeout (Server took too long)' : err.message;
-        
-        tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--status-rejected); padding: 40px;">Error: ${errorMsg}<br>Check console (F12) for details.</td></tr>`; });
+        tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--status-rejected); padding: 40px;">Network Error. Server might be sleeping.</td></tr>'; });
       } finally {
-        clearTimeout(timeoutId);
-        refreshBtn.innerHTML = 'Refresh Data';
+        refreshBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Refresh Data';
       }
     }
 
@@ -1076,20 +1055,27 @@
       }
 
       const actionDiv = document.getElementById('modal-actions');
+      
+      let deleteBtnHTML = `<button class="btn-decline" onclick="deleteApplication('${app.refId}')" style="margin-right: auto; border-color: var(--status-rejected); color: var(--status-rejected);">Delete</button>`;
+
       if (app.status === 'Pending') { 
         actionDiv.innerHTML = `
+          ${deleteBtnHTML}
           <button class="btn-decline" onclick="updateStatus('Declined')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            Reject Application
+            Reject
           </button>
           <button class="btn-approve" onclick="updateStatus('Approved')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Approve Application
+            Approve
           </button>
           <button class="btn-close-modal" onclick="closeModal()">Close</button>
         `; 
       } else { 
-        actionDiv.innerHTML = `<button class="btn-close-modal" onclick="closeModal()">Close</button>`; 
+        actionDiv.innerHTML = `
+          ${deleteBtnHTML}
+          <button class="btn-close-modal" onclick="closeModal()">Close</button>
+        `; 
       }
       
       document.getElementById('review-modal').classList.add('active');
@@ -1148,6 +1134,37 @@
         alert("Network error.");
         btn.disabled = false;
         btn.innerHTML = 'Save Note';
+      }
+    }
+
+    async function deleteApplication(refId) {
+      if (!confirm("Are you sure you want to permanently delete this application? This cannot be undone.")) {
+        return;
+      }
+      
+      const btn = event.target;
+      btn.textContent = 'Deleting...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/admin?action=delete&refId=${refId}`);
+        const result = await response.json();
+        
+        if (result.status === "success") {
+          globalApps = globalApps.filter(a => a.refId !== refId);
+          renderDashboardStats(); 
+          applyFilters(); 
+          closeModal(); 
+        } else {
+          alert("Failed to delete application.");
+          btn.textContent = 'Delete';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error("Delete Error:", err);
+        alert("Network error while trying to delete.");
+        btn.textContent = 'Delete';
+        btn.disabled = false;
       }
     }
   </script>
