@@ -23,6 +23,7 @@ const STAFF_DATABASE = {
   "Rogue": { name: "Xav", role: "Moderator" },
   "Falcon": { name: "azr", role: "Moderator" },
   "Aurora": { name: "Madam Nikki", role: "Staff" }
+  "Matrix": { name: "HolyM", role: "Web Developer" }
 };
 
 let db;
