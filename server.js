@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { createClient } = require('@libsql/client/http');
+const { createClient } = require('@libsql/client');
 
 const app = express();
 app.use(cors());
@@ -31,9 +31,14 @@ try {
   db = createClient({
     url: process.env.TURSO_DATABASE_URL,
     authToken: process.env.TURSO_AUTH_TOKEN,
-    timeout: 15000 // Forces the DB to stop hanging after 15 seconds
   });
   console.log("Database connection initialized.");
+  
+  // 🚨 STARTUP PING TO TEST CONNECTION 🚨
+  db.execute("SELECT 1")
+    .then(() => console.log("✅ TURSO PING SUCCESSFUL! The database is reachable."))
+    .catch((err) => console.error("❌ TURSO PING FAILED:", err.message));
+
 } catch (error) {
   console.error("Failed to initialize database:", error);
 }
@@ -125,18 +130,15 @@ app.get('/api/admin', async (req, res) => {
       console.log("⏳ FETCHING APPLICATIONS FROM TURSO...");
       
       try {
-        // 1. Create a manual timeout that rejects after 8 seconds
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error("Database query timed out (8s)")), 8000)
         );
 
-        // 2. The actual database query
         const dbPromise = db.execute(`
           SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
           FROM applications ORDER BY id DESC
         `);
 
-        // 3. Race them! Whichever finishes first (the data or the timeout) wins.
         const result = await Promise.race([dbPromise, timeoutPromise]);
         
         console.log(`✅ SUCCESSFULLY FETCHED ${result.rows.length} ROWS!`);
