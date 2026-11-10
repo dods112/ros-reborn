@@ -33,11 +33,6 @@ try {
     authToken: process.env.TURSO_AUTH_TOKEN,
   });
   console.log("Database connection initialized.");
-  
-  db.execute("SELECT 1")
-    .then(() => console.log("✅ TURSO PING SUCCESSFUL! The database is reachable."))
-    .catch((err) => console.error("❌ TURSO PING FAILED:", err.message));
-
 } catch (error) {
   console.error("Failed to initialize database:", error);
 }
@@ -126,25 +121,61 @@ app.get('/api/admin', async (req, res) => {
 
   try {
     if (action === 'getAll') {
-      console.log("⏳ FETCHING APPLICATIONS FROM TURSO...");
+      console.log("⏳ FETCHING APPLICATIONS VIA DIRECT TURSO HTTP API...");
       
       try {
-        // CHANGED TO 20 SECONDS
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Database query timed out (20s)")), 20000)
-        );
+        let baseUrl = process.env.TURSO_DATABASE_URL.replace("libsql://", "https://");
+        if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+        const tursoUrl = `${baseUrl}/v2/pipeline`;
 
-        const dbPromise = db.execute(`
-          SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
-          FROM applications ORDER BY id DESC
-        `);
+        const payload = {
+          requests: [
+            {
+              type: "execute",
+              stmt: {
+                sql: "SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes FROM applications ORDER BY id DESC"
+              }
+            },
+            { type: "close" }
+          ]
+        };
 
-        const result = await Promise.race([dbPromise, timeoutPromise]);
+        const response = await fetch(tursoUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Turso API Error ${response.status}: ${errText}`);
+        }
+
+        const data = await response.json();
+        const result = data.results[0];
+
+        if (result.type === 'error') {
+          throw new Error(result.error.message);
+        }
+
+        const cols = result.response.result.cols.map(c => c.name);
+        const rawRows = result.response.result.rows;
+        const formattedRows = rawRows.map(row => {
+          const obj = {};
+          row.forEach((cell, index) => {
+            obj[cols[index]] = cell.value;
+          });
+          return obj;
+        });
+
+        console.log(`✅ SUCCESSFULLY FETCHED ${formattedRows.length} ROWS VIA HTTP API!`);
+        return res.status(200).json({ status: 'success', data: formattedRows });
         
-        console.log(`✅ SUCCESSFULLY FETCHED ${result.rows.length} ROWS!`);
-        return res.status(200).json({ status: 'success', data: result.rows });
       } catch (dbError) {
-        console.error("❌ TURSO DB ERROR:", dbError.message);
+        console.error("❌ TURSO HTTP API ERROR:", dbError.message);
         return res.status(500).json({ status: 'error', message: dbError.message });
       }
     }
