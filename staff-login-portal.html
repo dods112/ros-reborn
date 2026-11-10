@@ -889,25 +889,35 @@
       clearFilters();
     }
 
-    async function fetchApplications() {
+        async function fetchApplications() {
       const refreshBtn = document.getElementById('refresh-btn');
-      refreshBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Loading...';
+      refreshBtn.innerHTML = 'Loading...';
       
       const tbodyIds = ['recent-apps-tbody', 'all-apps-tbody', 'approved-apps-tbody', 'declined-apps-tbody'];
       tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color:var(--text-muted);">Fetching data...</td></tr>'; });
       
       try {
         const response = await fetch(`${API_BASE}/admin?action=getAll`);
+        
+        // 🚨 CATCH THE ERROR HERE 🚨
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.status}`);
+        }
+
         const result = await response.json();
         if (result.status === "success") {
           globalApps = result.data;
           renderDashboardStats();
           applyFilters();
+        } else {
+          throw new Error(result.message || "Unknown API error");
         }
       } catch (err) {
-        tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--status-rejected); padding: 40px;">Network Error. Server might be sleeping.</td></tr>'; });
+        console.error("Fetch Error:", err);
+        // Show the actual error on the screen instead of freezing
+        tbodyIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--status-rejected); padding: 40px;">Error: ${err.message}<br>Check console (F12) for details.</td></tr>`; });
       } finally {
-        refreshBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Refresh Data';
+        refreshBtn.innerHTML = 'Refresh Data';
       }
     }
 
