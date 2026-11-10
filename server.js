@@ -31,6 +31,7 @@ try {
   db = createClient({
     url: process.env.TURSO_DATABASE_URL,
     authToken: process.env.TURSO_AUTH_TOKEN,
+    timeout: 15000 // Forces the DB to stop hanging after 15 seconds
   });
   console.log("Database connection initialized.");
 } catch (error) {
@@ -121,11 +122,20 @@ app.get('/api/admin', async (req, res) => {
 
   try {
     if (action === 'getAll') {
-      const result = await db.execute(`
-        SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
-        FROM applications ORDER BY id DESC
-      `);
-      return res.status(200).json({ status: 'success', data: result.rows });
+      console.log("⏳ FETCHING APPLICATIONS FROM TURSO...");
+      
+      try {
+        const result = await db.execute(`
+          SELECT id, timestamp, ref_id as refId, legal_name, edition, ign, discord, email, platform, channel, followers, views, best_content as content, additional_notes as notes, proof_file as proof, proof_url as proofUrl, status, staff_notes as staffNotes 
+          FROM applications ORDER BY id DESC
+        `);
+        
+        console.log(`✅ SUCCESSFULLY FETCHED ${result.rows.length} ROWS!`);
+        return res.status(200).json({ status: 'success', data: result.rows });
+      } catch (dbError) {
+        console.error("❌ TURSO DB ERROR:", dbError);
+        throw dbError; 
+      }
     }
 
     if (action === 'update') {
