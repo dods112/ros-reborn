@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { createClient } = require('@libsql/client');
+const { createClient } = require('@libsql/client/http');
 
 const app = express();
 app.use(cors());
